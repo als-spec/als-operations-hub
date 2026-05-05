@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
+import { useCurrentUser } from '@/lib/useCurrentUser';
 
 const DEFAULT_MILESTONES = [
   { type: 'Kickoff Call', completed: false, completed_date: '', notes: '' },
@@ -24,19 +25,18 @@ const DEFAULT_MILESTONES = [
 ];
 
 const DEFAULT_DATA_REQUESTS = [
-  { item_name: 'Supply spend by category (12 months)', status: 'Not Requested', due_date: '', notes: '' },
-  { item_name: 'GPO contract documentation', status: 'Not Requested', due_date: '', notes: '' },
-  { item_name: 'Current vendor list with pricing', status: 'Not Requested', due_date: '', notes: '' },
-  { item_name: 'Implant usage & preference cards', status: 'Not Requested', due_date: '', notes: '' },
-  { item_name: 'Charge master (relevant codes)', status: 'Not Requested', due_date: '', notes: '' },
-  { item_name: 'Inventory management reports', status: 'Not Requested', due_date: '', notes: '' },
+  { item_name: 'Purchase order line-item data', status: 'Not Requested', due_date: '', notes: '' },
+  { item_name: 'Vendor contracts (top 20)', status: 'Not Requested', due_date: '', notes: '' },
+  { item_name: 'GPO membership documentation', status: 'Not Requested', due_date: '', notes: '' },
+  { item_name: 'Case volume report', status: 'Not Requested', due_date: '', notes: '' },
+  { item_name: 'PAR level inventory list', status: 'Not Requested', due_date: '', notes: '' },
+  { item_name: 'Preference cards', status: 'Not Requested', due_date: '', notes: '' },
 ];
 
 const DEFAULT_DELIVERABLES = [
   { name: 'Findings Deck', status: 'Not Started', file_url: '', delivery_date: '' },
   { name: 'Analytics Dashboard', status: 'Not Started', file_url: '', delivery_date: '' },
   { name: '90-Day Roadmap', status: 'Not Started', file_url: '', delivery_date: '' },
-  { name: 'Final Invoice', status: 'Not Started', file_url: '', delivery_date: '' },
 ];
 
 const dataStatusColors = {
@@ -53,6 +53,8 @@ export default function EngagementDetail() {
   const [noteText, setNoteText] = useState('');
   const [showGuaranteeForm, setShowGuaranteeForm] = useState(false);
   const [newGuarantee, setNewGuarantee] = useState({ category: '', stated_amount: '', confidence: 'High', notes: '' });
+
+  const { isVA, isFounder } = useCurrentUser();
 
   const { data: engagement, isLoading } = useQuery({
     queryKey: ['engagement', id],
@@ -141,7 +143,7 @@ export default function EngagementDetail() {
           <div>
             <h1 className="text-2xl font-bold">{engagement.facility_name}</h1>
             <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />${engagement.fee?.toLocaleString()}</span>
+              {!isVA && <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />${engagement.fee?.toLocaleString()}</span>}
               {engagement.kickoff_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{format(new Date(engagement.kickoff_date), 'MMM d')} → {engagement.delivery_target ? format(new Date(engagement.delivery_target), 'MMM d') : '—'}</span>}
               {engagement.operator_name && <span className="flex items-center gap-1"><User className="w-3 h-3" />{engagement.operator_name}</span>}
             </div>
@@ -149,7 +151,7 @@ export default function EngagementDetail() {
         </div>
         <div className="flex items-center gap-2">
           <Badge className={engagement.status === 'Active' ? 'bg-teal/10 text-teal' : 'bg-success/10 text-success'}>{engagement.status}</Badge>
-          {engagement.findings_delivered && (
+          {engagement.findings_delivered && !isVA && (
             <Button size="sm" variant="outline" onClick={() => {
               const params = new URLSearchParams({
                 facility_name: engagement.facility_name || '',
@@ -209,8 +211,8 @@ export default function EngagementDetail() {
             </CardContent>
           </Card>
 
-          {/* Guarantee Tracker */}
-          <Card>
+          {/* Guarantee Tracker — hidden from VA per business rule 11 */}
+          {!isVA && <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -281,7 +283,7 @@ export default function EngagementDetail() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card>}
 
           {/* Internal Notes */}
           <Card>

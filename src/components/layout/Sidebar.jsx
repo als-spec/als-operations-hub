@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { label: 'Dashboard',      path: '/',               icon: LayoutDashboard, roles: ['founder', 'operator', 'va', 'analyst', 'admin'] },
   { label: 'Prospects',      path: '/prospects',      icon: Users,           roles: ['founder', 'operator', 'va', 'admin'] },
-  { label: 'Outreach',       path: '/outreach',       icon: Send,            roles: ['founder', 'operator', 'admin'] },
+  { label: 'Outreach',       path: '/outreach',       icon: Send,            roles: ['founder', 'operator', 'va', 'admin'] },
   { label: 'Pipeline',       path: '/pipeline',       icon: GitBranch,       roles: ['founder', 'operator', 'va', 'admin'] },
   { label: 'Engagements',    path: '/engagements',    icon: Briefcase,       roles: ['founder', 'operator', 'analyst', 'admin'] },
   { label: 'Retainers',      path: '/retainers',      icon: RefreshCw,       roles: ['founder', 'operator', 'admin'] },

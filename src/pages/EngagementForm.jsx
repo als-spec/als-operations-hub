@@ -22,6 +22,11 @@ export default function EngagementForm() {
     fee: params.get('fee') || '',
     prospect_id: params.get('prospect_id') || '',
     pipeline_record_id: params.get('pipeline_record_id') || '',
+    // Carry forward document links from pipeline record
+    sow_signed_url: params.get('sow_signed_url') || '',
+    sow_signed_date: params.get('sow_signed_date') || '',
+    freshbooks_deposit_invoice_url: params.get('freshbooks_deposit_invoice_url') || '',
+    freshbooks_deposit_invoice_number: params.get('freshbooks_deposit_invoice_number') || '',
     kickoff_date: '', on_site_date: '', operator_name: '',
   });
 

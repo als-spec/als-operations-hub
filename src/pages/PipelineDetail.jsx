@@ -87,7 +87,7 @@ export default function PipelineDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {['SOW Signed', 'Deposit Received'].includes(record.stage) && (
+          {!isVA && record.stage === 'Deposit Received' && (
             <Button size="sm" onClick={() => {
               const params = new URLSearchParams({
                 prospect_id: record.prospect_id || '',
@@ -95,25 +95,32 @@ export default function PipelineDetail() {
                 facility_name: record.facility_name,
                 admin_name: record.admin_name || '',
                 fee: record.proposed_fee || '',
+                sow_signed_url: record.sow_signed_url || '',
+                sow_signed_date: record.sow_signed_date || '',
+                freshbooks_deposit_invoice_url: record.freshbooks_deposit_invoice_url || '',
+                freshbooks_deposit_invoice_number: record.freshbooks_deposit_invoice_number || '',
               });
               navigate(`/engagements/new?${params.toString()}`);
             }}>
               <Briefcase className="w-3.5 h-3.5 mr-1" /> Start Engagement
             </Button>
           )}
-          <Select value={record.stage} onValueChange={handleStageChange} disabled={isOperator && ['SOW Sent', 'SOW Signed'].includes(record.stage)}>
-            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {!isVA && (
+            <Select value={record.stage} onValueChange={handleStageChange} disabled={isOperator && ['SOW Sent', 'SOW Signed'].includes(record.stage)}>
+              <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          {isVA && <Badge variant="outline" className="text-xs">{record.stage}</Badge>}
         </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* BANT Score */}
-          <Card>
+          {/* BANT Score — hidden from VA */}
+          {!isVA && <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold">BANT Score</CardTitle>
               <div className="flex items-center gap-2">
@@ -149,16 +156,18 @@ export default function PipelineDetail() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card>}
 
           {/* Call Notes */}
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Call Notes</CardTitle></CardHeader>
             <CardContent>
-              <div className="flex gap-2 mb-4">
-                <Textarea value={callNote} onChange={e => setCallNote(e.target.value)} placeholder="Add call notes…" className="text-sm min-h-[60px]" />
-                <Button size="sm" onClick={handleAddCallNote} className="self-end">Add</Button>
-              </div>
+              {!isVA && (
+                <div className="flex gap-2 mb-4">
+                  <Textarea value={callNote} onChange={e => setCallNote(e.target.value)} placeholder="Add call notes…" className="text-sm min-h-[60px]" />
+                  <Button size="sm" onClick={handleAddCallNote} className="self-end">Add</Button>
+                </div>
+              )}
               {(record.call_notes || []).length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-4">No call notes yet</p>
               ) : (
@@ -201,7 +210,7 @@ export default function PipelineDetail() {
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Deal Details</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div><p className="text-xs text-muted-foreground">Contact</p><p className="font-medium">{record.admin_name || '—'}</p></div>
-              <div><p className="text-xs text-muted-foreground">Proposed Fee</p><p className="font-medium">{record.proposed_fee ? `$${record.proposed_fee.toLocaleString()}` : '—'}</p></div>
+              {!isVA && <div><p className="text-xs text-muted-foreground">Proposed Fee</p><p className="font-medium">{record.proposed_fee ? `$${record.proposed_fee.toLocaleString()}` : '—'}</p></div>}
               <div><p className="text-xs text-muted-foreground">Kickoff Window</p><p>{record.proposed_kickoff_window || '—'}</p></div>
               <div><p className="text-xs text-muted-foreground">Assigned To</p><p>{record.assigned_to || '—'}</p></div>
               <div><p className="text-xs text-muted-foreground">Next Action</p><p>{record.next_action || '—'}</p></div>
