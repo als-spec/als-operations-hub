@@ -7,7 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppLayout from '@/components/layout/AppLayout';
-import Dashboard from '@/pages/Dashboard';
+import AuthGuard from '@/components/AuthGuard';
+import DashboardWithAuth from '@/components/DashboardWithAuth';
 import Prospects from '@/pages/Prospects';
 import ProspectDetail from '@/pages/ProspectDetail';
 import ProspectForm from '@/pages/ProspectForm';
@@ -57,8 +58,12 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
+      {/* Login landing page — shows login form or dashboard */}
+      <Route path="/" element={<DashboardWithAuth />} />
+      
+      {/* Internal pages — wrapped with auth guard */}
+      <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
+        <Route path="/dashboard" element={<DashboardWithAuth />} />
         <Route path="/prospects" element={<Prospects />} />
         <Route path="/prospects/new" element={<ProspectForm />} />
         <Route path="/prospects/:id" element={<ProspectDetail />} />
