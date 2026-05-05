@@ -136,8 +136,12 @@ export default function Prospects() {
               <TableRow><TableCell colSpan={8} className="text-center py-8 text-sm text-muted-foreground">No prospects found</TableCell></TableRow>
             ) : (
               filtered.map(p => (
-                <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/prospects/${p.id}`)}>
-                  <TableCell className="font-medium text-sm">{p.facility_name}</TableCell>
+                <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-medium text-sm">
+                    <button onClick={() => navigate(`/prospects/${p.id}`)} className="text-cobalt hover:underline cursor-pointer">
+                      {p.facility_name}
+                    </button>
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{p.county || '—'}</TableCell>
                   <TableCell className="text-sm">{p.or_count || '—'}</TableCell>
                   <TableCell className="text-sm">{p.admin_name || '—'}</TableCell>
