@@ -7,10 +7,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X, Send, Eye, EyeOff } from 'lucide-react';
-import { EMAIL_TEMPLATES, applyTemplate } from '@/components/email/emailTemplates';
+import { X, Send, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import {
+  EMAIL_TEMPLATES, applyTemplate, buildAutoVars,
+  countUnfilledManualVars, SERIES_LABELS,
+} from '@/components/email/emailTemplates';
 
-export default function EmailComposer({ prefill, prospects, engagements, retainers, onSent, onCancel }) {
+// Group templates by series for the selector
+const GROUPED = Object.entries(SERIES_LABELS).map(([series, label]) => ({
+  series, label,
+  templates: EMAIL_TEMPLATES.filter(t => t.series === series),
+}));
+
+export default function EmailComposer({ prefill, prospects, engagements, retainers, onSent, onCancel, currentUser }) {
   const [form, setForm] = useState({
     to_address: prefill?.to_address || '',
     to_name: prefill?.to_name || '',
@@ -27,41 +36,53 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const getLinkedRecord = () => {
+    const { linked_record_type, linked_record_id } = form;
+    if (!linked_record_id) return null;
+    if (linked_record_type === 'prospect') return prospects?.find(x => x.id === linked_record_id);
+    if (linked_record_type === 'engagement') return engagements?.find(x => x.id === linked_record_id);
+    if (linked_record_type === 'retainer') return retainers?.find(x => x.id === linked_record_id);
+    return null;
+  };
+
   const handleTemplateSelect = (templateId) => {
-    if (!templateId) return;
+    if (!templateId || templateId === 'blank') {
+      set('template_used', '');
+      return;
+    }
     const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
     if (!template) return;
-    const vars = {
-      NAME: form.to_name || '[Name]',
-      FACILITY: form.linked_record_name || '[Facility]',
-      CALENDAR_LINK: '[Calendar Link]',
-    };
+    const record = getLinkedRecord();
+    const autoVars = buildAutoVars(record, form.linked_record_type, currentUser);
     set('template_used', templateId);
-    set('subject', applyTemplate(template.subject, vars));
-    set('body', applyTemplate(template.body, vars));
+    set('subject', applyTemplate(template.subject, autoVars));
+    set('body', applyTemplate(template.body, autoVars));
   };
 
   const handleLinkedRecord = (type, id) => {
     set('linked_record_type', type);
     set('linked_record_id', id);
     if (!id) { set('linked_record_name', ''); return; }
-    if (type === 'prospect') {
-      const p = prospects.find(x => x.id === id);
-      if (p) { set('linked_record_name', p.facility_name); set('to_address', p.admin_email || form.to_address); set('to_name', p.admin_name || form.to_name); }
-    } else if (type === 'engagement') {
-      const e = engagements.find(x => x.id === id);
-      if (e) { set('linked_record_name', e.facility_name); set('to_address', e.admin_email || form.to_address); set('to_name', e.admin_name || form.to_name); }
-    } else if (type === 'retainer') {
-      const r = retainers.find(x => x.id === id);
-      if (r) { set('linked_record_name', r.facility_name); set('to_address', r.admin_email || form.to_address); set('to_name', r.admin_name || form.to_name); }
+    const lists = { prospect: prospects, engagement: engagements, retainer: retainers };
+    const rec = (lists[type] || []).find(x => x.id === id);
+    if (rec) {
+      set('linked_record_name', rec.facility_name);
+      set('to_address', rec.admin_email || form.to_address);
+      set('to_name', rec.admin_name || form.to_name);
     }
   };
 
+  // Re-apply template when linked record changes
+  useEffect(() => {
+    if (form.template_used) handleTemplateSelect(form.template_used);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.linked_record_id, form.linked_record_type]);
+
+  const unfilledCount = countUnfilledManualVars(form.body) + countUnfilledManualVars(form.subject);
+  const canSend = form.to_address && form.subject && form.body && unfilledCount === 0;
+
   const handleSend = async () => {
-    if (!form.to_address || !form.subject || !form.body) {
-      setError('To, Subject, and Body are required.');
-      return;
-    }
+    if (!canSend) return;
     setSending(true);
     setError('');
     try {
@@ -74,10 +95,16 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
     }
   };
 
-  const recordOptions = {
-    prospect: prospects,
-    engagement: engagements,
-    retainer: retainers,
+  const recordOptions = { prospect: prospects, engagement: engagements, retainer: retainers };
+
+  // Render body with ⚠️ vars highlighted
+  const renderHighlightedBody = (text) => {
+    const parts = text.split(/(⚠️\[[A-Z_]+\])/g);
+    return parts.map((part, i) =>
+      /^⚠️\[/.test(part)
+        ? <mark key={i} className="bg-warning/20 text-warning font-semibold rounded px-0.5">{part}</mark>
+        : <span key={i}>{part}</span>
+    );
   };
 
   return (
@@ -85,7 +112,13 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Send className="w-4 h-4 text-primary" />New Email
+            <Send className="w-4 h-4 text-primary" />
+            New Email
+            {unfilledCount > 0 && (
+              <Badge className="bg-warning/10 text-warning border-warning/30 text-[10px] gap-1">
+                <AlertTriangle className="w-3 h-3" />{unfilledCount} unfilled {unfilledCount === 1 ? 'variable' : 'variables'}
+              </Badge>
+            )}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPreview(v => !v)}>
@@ -96,26 +129,53 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Template selector */}
+        {/* Template selector — grouped by series */}
         <div>
           <Label className="text-xs text-muted-foreground">Template</Label>
-          <Select onValueChange={handleTemplateSelect}>
-            <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue placeholder="Select a template…" /></SelectTrigger>
-            <SelectContent>
-              {EMAIL_TEMPLATES.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+          <Select value={form.template_used} onValueChange={handleTemplateSelect}>
+            <SelectTrigger className="mt-1 h-8 text-xs">
+              <SelectValue placeholder="Select a template…" />
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
               <SelectItem value="blank">— Blank —</SelectItem>
+              {GROUPED.map(group => (
+                <React.Fragment key={group.series}>
+                  <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/50 border-t border-border">
+                    {group.label}
+                  </div>
+                  {group.templates.map(t => (
+                    <SelectItem key={t.id} value={t.id} className="pl-4 text-xs">
+                      {t.id} — {t.name}
+                    </SelectItem>
+                  ))}
+                </React.Fragment>
+              ))}
             </SelectContent>
           </Select>
+          {form.template_used && (() => {
+            const tmpl = EMAIL_TEMPLATES.find(t => t.id === form.template_used);
+            return tmpl ? (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Trigger: {tmpl.trigger} · Default sender: <span className="capitalize font-medium">{tmpl.default_sender}</span>
+                {tmpl.manual_vars.length > 0 && <> · <span className="text-warning">⚠️ {tmpl.manual_vars.length} manual {tmpl.manual_vars.length === 1 ? 'var' : 'vars'} required</span></>}
+              </p>
+            ) : null;
+          })()}
         </div>
 
         {/* Linked record */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground">Link to</Label>
-            <Select value={form.linked_record_type} onValueChange={v => { set('linked_record_type', v); set('linked_record_id', ''); set('linked_record_name', ''); }}>
+            <Select value={form.linked_record_type || 'none'} onValueChange={v => {
+              const type = v === 'none' ? '' : v;
+              set('linked_record_type', type);
+              set('linked_record_id', '');
+              set('linked_record_name', '');
+            }}>
               <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 <SelectItem value="prospect">Prospect</SelectItem>
                 <SelectItem value="engagement">Engagement</SelectItem>
                 <SelectItem value="retainer">Retainer</SelectItem>
@@ -152,27 +212,56 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
         {/* Subject */}
         <div>
           <Label className="text-xs text-muted-foreground">Subject *</Label>
-          <Input className="mt-1 h-8 text-xs" value={form.subject} onChange={e => set('subject', e.target.value)} placeholder="Subject line…" />
+          {preview ? (
+            <div className="mt-1 border rounded-md px-3 py-2 text-xs bg-secondary/20 min-h-[32px]">
+              {renderHighlightedBody(form.subject)}
+            </div>
+          ) : (
+            <Input className="mt-1 h-8 text-xs" value={form.subject} onChange={e => set('subject', e.target.value)} placeholder="Subject line…" />
+          )}
         </div>
 
         {/* Body */}
         <div>
-          <Label className="text-xs text-muted-foreground">Body *</Label>
+          <Label className="text-xs text-muted-foreground flex items-center justify-between">
+            <span>Body *</span>
+            {unfilledCount > 0 && !preview && (
+              <span className="text-warning text-[11px] font-normal">Replace all ⚠️[VARIABLE] placeholders to enable send</span>
+            )}
+          </Label>
           {preview ? (
-            <div className="mt-1 border border-border rounded-md p-3 text-sm whitespace-pre-wrap bg-secondary/20 min-h-[160px]">{form.body}</div>
+            <div className="mt-1 border border-border rounded-md p-3 text-sm whitespace-pre-wrap bg-secondary/20 min-h-[200px] leading-relaxed">
+              {renderHighlightedBody(form.body)}
+            </div>
           ) : (
-            <Textarea className="mt-1 text-sm min-h-[160px]" value={form.body} onChange={e => set('body', e.target.value)} placeholder="Email body…" />
+            <Textarea
+              className="mt-1 text-sm min-h-[200px] font-mono text-xs leading-relaxed"
+              value={form.body}
+              onChange={e => set('body', e.target.value)}
+              placeholder="Email body…"
+            />
           )}
         </div>
 
         {error && <p className="text-xs text-destructive">{error}</p>}
 
-        <div className="flex gap-2 pt-1">
-          <Button onClick={handleSend} disabled={sending} className="gap-2">
+        <div className="flex items-center gap-2 pt-1">
+          <Button
+            onClick={handleSend}
+            disabled={sending || !canSend}
+            className="gap-2"
+            title={unfilledCount > 0 ? `Fill in ${unfilledCount} required variable(s) before sending` : ''}
+          >
             <Send className="w-3.5 h-3.5" />
             {sending ? 'Sending…' : 'Send Email'}
           </Button>
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          {!canSend && !sending && unfilledCount > 0 && (
+            <span className="text-xs text-warning flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" />
+              {unfilledCount} {unfilledCount === 1 ? 'variable' : 'variables'} must be filled before sending
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>

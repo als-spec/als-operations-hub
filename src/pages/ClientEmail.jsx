@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useCurrentUser } from '@/lib/useCurrentUser';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -8,6 +9,7 @@ import EmailComposer from '@/components/email/EmailComposer';
 import EmailLog from '@/components/email/EmailLog';
 
 export default function ClientEmail() {
+  const { user } = useCurrentUser();
   const [showComposer, setShowComposer] = useState(false);
   const [prefill, setPrefill] = useState(null);
 
@@ -55,6 +57,7 @@ export default function ClientEmail() {
           prospects={prospects}
           engagements={engagements}
           retainers={retainers}
+          currentUser={user}
           onSent={handleSent}
           onCancel={() => { setShowComposer(false); setPrefill(null); }}
         />
