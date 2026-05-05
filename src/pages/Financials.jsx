@@ -18,7 +18,7 @@ export default function Financials() {
   const [editingInvoice, setEditingInvoice] = useState(null);
   const queryClient = useQueryClient();
 
-  const isFounder = user?.role === 'admin' || user?.email?.includes('founder');
+  const isFounder = user?.role === 'founder';
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['invoices'],
