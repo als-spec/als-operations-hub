@@ -39,11 +39,18 @@ export default function ClientPortal() {
           return;
         }
 
-        const response = await base44.functions.invoke('validatePortalToken', { token });
-        setData(response.data);
+        const response = await base44.functions.invoke('getPortalPublicData', { token });
+        if (!response.data.success) {
+          setError('This link is no longer active.');
+          setData(null);
+          setLoading(false);
+          return;
+        }
+        setData(response.data.data);
         setError(null);
       } catch (err) {
-        setError(err.response?.status === 410 ? 'This link is no longer active.' : 'Unable to load portal.');
+        console.error('Portal error:', err);
+        setError('This link is no longer active.');
         setData(null);
       } finally {
         setLoading(false);

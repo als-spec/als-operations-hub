@@ -21,32 +21,21 @@ export default function SowPublicView() {
           return;
         }
 
-        // Fetch pipeline record by sow_generated_url token
-        const records = await base44.entities.PipelineRecord.filter({
-          sow_generated_url: `sow-${token}.pdf`
-        });
+        // Use public function to fetch SOW data
+        const response = await base44.functions.invoke('getSowPublicData', { token });
 
-        if (!records || records.length === 0) {
+        if (!response.data.success) {
           setError('This link is no longer active');
+          setData(null);
           setLoading(false);
           return;
         }
 
-        const record = records[0];
-
-        // Fetch prospect data
-        const prospect = record.prospect_id
-          ? (await base44.entities.Prospect.filter({ id: record.prospect_id }))[0]
-          : null;
-
-        // Fetch settings
-        const settingsList = await base44.entities.PracticeSettings.filter({});
-        const practiceSettings = settingsList[0];
-
-        setData({ record, prospect });
-        setSettings(practiceSettings);
+        setData(response.data.data);
+        setSettings(response.data.data);
         setError(null);
       } catch (err) {
+        console.error('Error fetching SOW:', err);
         setError('This link is no longer active');
         setData(null);
       } finally {
@@ -86,15 +75,14 @@ export default function SowPublicView() {
     );
   }
 
-  const { record, prospect } = data;
-  const exclusionsList = record.scope_exclusions?.map(e => `<li>${e}</li>`).join('') || '';
-  const fee = record.proposed_fee || 0;
-  const deposit = Math.round(fee * 0.5 * 100) / 100;
-  const balance = Math.round(fee * 0.5 * 100) / 100;
+  const exclusionsList = data.scope_exclusions?.map(e => `<li>${e}</li>`).join('') || '';
+  const fee = data.engagement_fee || 0;
+  const deposit = data.deposit_amount || Math.round(fee * 0.5 * 100) / 100;
+  const balance = data.balance_amount || Math.round(fee * 0.5 * 100) / 100;
 
   const deliveryTarget = (() => {
-    if (!record.proposed_kickoff_window) return '';
-    const date = new Date(record.proposed_kickoff_window);
+    if (!data.kickoff_date) return '';
+    const date = new Date(data.kickoff_date);
     let added = 0;
     while (added < 15) {
       date.setDate(date.getDate() + 1);
@@ -143,7 +131,7 @@ export default function SowPublicView() {
           <div>
             <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0A2540', marginBottom: '8px' }}>SECTION 1 — SCOPE OF SERVICES</h2>
             <p style={{ marginBottom: '8px' }}>
-              The Consultant will conduct a comprehensive supply chain diagnostic engagement for {prospect?.facility_name}, focusing on the following procedure types and service categories: <strong>{prospect?.specialty_focus}</strong>.
+              The Consultant will conduct a comprehensive supply chain diagnostic engagement for {data.client_name}, focusing on the following procedure types and service categories: <strong>{data.procedure_types}</strong>.
             </p>
             <p style={{ marginBottom: '8px' }}>The following items are explicitly EXCLUDED from this engagement:</p>
             <ul style={{ marginLeft: '16px', marginBottom: '8px' }}>
@@ -156,9 +144,9 @@ export default function SowPublicView() {
           <div>
             <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0A2540', marginBottom: '8px' }}>SECTION 2 — ENGAGEMENT TEAM</h2>
             <div style={{ marginLeft: '16px' }}>
-              <p><strong>Consultant:</strong> {settings?.founder_name || '[Founder Name]'}</p>
-              <p><strong>Operations Lead:</strong> {settings?.operator_name || '[Operator Name]'}</p>
-              <p><strong>Client Point of Contact:</strong> {prospect?.admin_name}</p>
+              <p><strong>Consultant:</strong> {data.founder_name || '[Founder Name]'}</p>
+              <p><strong>Operations Lead:</strong> {data.operator_name || '[Operator Name]'}</p>
+              <p><strong>Client Point of Contact:</strong> {data.admin_name}</p>
             </div>
           </div>
 
@@ -169,7 +157,7 @@ export default function SowPublicView() {
               <tbody>
                 <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
                   <td style={{ padding: '6px', fontWeight: '600' }}>Engagement kickoff</td>
-                  <td style={{ padding: '6px' }}>{record.proposed_kickoff_window || 'TBD'}</td>
+                  <td style={{ padding: '6px' }}>{data.kickoff_date || 'TBD'}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
                   <td style={{ padding: '6px', fontWeight: '600' }}>Data delivery by Client</td>
@@ -351,14 +339,14 @@ export default function SowPublicView() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', fontSize: '10px' }}>
               <div>
                 <div style={{ borderBottom: '1px solid #0A2540', marginBottom: '4px', minHeight: '40px' }} />
-                <div><strong>{prospect?.admin_name}</strong></div>
-                <div>{prospect?.facility_name}</div>
+                <div><strong>{data?.admin_name}</strong></div>
+                <div>{data?.client_name}</div>
                 <div style={{ marginTop: '8px' }}>Date: _______________</div>
               </div>
               <div>
                 <div style={{ borderBottom: '1px solid #0A2540', marginBottom: '4px', minHeight: '40px' }} />
-                <div><strong>{settings?.founder_name || '[Founder Name]'}</strong></div>
-                <div>{settings?.practice_name || '[Practice Name]'}</div>
+                <div><strong>{data?.founder_name || '[Founder Name]'}</strong></div>
+                <div>{data?.practice_name || '[Practice Name]'}</div>
                 <div style={{ marginTop: '8px' }}>Date: _______________</div>
               </div>
             </div>
@@ -369,10 +357,10 @@ export default function SowPublicView() {
       {/* Footer */}
       <div className="max-w-4xl mx-auto pb-12 text-center">
         <p className="text-xs text-gray-600">
-          {settings?.contact_email && (
+          {data?.contact_email && (
             <>
-              Questions? Contact us at {settings.contact_email}
-              {settings?.contact_phone && <> or {settings.contact_phone}</>}
+              Questions? Contact us at {data.contact_email}
+              {data?.contact_phone && <> or {data.contact_phone}</>}
             </>
           )}
         </p>
