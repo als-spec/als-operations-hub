@@ -41,6 +41,7 @@ export default function SowGenerator({ record, prospect, settings, onClose, onSu
   const deliveryTarget = useMemo(() => {
     if (!fields.kickoff_date) return '';
     const date = new Date(fields.kickoff_date);
+    if (isNaN(date.getTime())) return '';
     let added = 0;
     while (added < 15) {
       date.setDate(date.getDate() + 1);
