@@ -29,6 +29,7 @@ import ClientEmail from '@/pages/ClientEmail';
 import Documents from '@/pages/Documents';
 import Settings from '@/pages/Settings';
 import ClientPortal from '@/pages/ClientPortal';
+import RetainerPortal from '@/pages/RetainerPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="/portal/:token" element={<ClientPortal />} />
+      <Route path="/retainer-portal/:token" element={<RetainerPortal />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

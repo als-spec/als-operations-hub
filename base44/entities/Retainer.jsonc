@@ -199,6 +199,27 @@
     },
     "freshbooks_recurring_invoice_number": {
       "type": "string"
+    },
+    "portal_token": {
+      "type": "string",
+      "description": "Hashed token for portal access"
+    },
+    "portal_url": {
+      "type": "string",
+      "description": "Full portal URL for client"
+    },
+    "portal_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Portal access active status"
+    },
+    "portal_created_at": {
+      "type": "string",
+      "description": "When portal token was generated"
+    },
+    "portal_last_viewed_at": {
+      "type": "string",
+      "description": "Last time client accessed portal"
     }
   },
   "required": [
