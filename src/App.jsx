@@ -20,6 +20,10 @@ import EngagementForm from '@/pages/EngagementForm';
 import Schedule from '@/pages/Schedule';
 import EventForm from '@/pages/EventForm';
 import Financials from '@/pages/Financials';
+import Retainers from '@/pages/Retainers';
+import RetainerDetail from '@/pages/RetainerDetail';
+import RetainerForm from '@/pages/RetainerForm';
+import Outreach from '@/pages/Outreach';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +64,10 @@ const AuthenticatedApp = () => {
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/schedule/new" element={<EventForm />} />
         <Route path="/financials" element={<Financials />} />
+        <Route path="/retainers" element={<Retainers />} />
+        <Route path="/retainers/new" element={<RetainerForm />} />
+        <Route path="/retainers/:id" element={<RetainerDetail />} />
+        <Route path="/outreach" element={<Outreach />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

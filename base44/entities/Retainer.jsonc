@@ -1,0 +1,87 @@
+{
+  "name": "Retainer",
+  "type": "object",
+  "properties": {
+    "engagement_id": {
+      "type": "string"
+    },
+    "prospect_id": {
+      "type": "string"
+    },
+    "facility_name": {
+      "type": "string"
+    },
+    "admin_name": {
+      "type": "string"
+    },
+    "admin_email": {
+      "type": "string"
+    },
+    "mrr": {
+      "type": "number",
+      "description": "Monthly recurring revenue"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_qbr_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "At Risk",
+        "Churned",
+        "Paused"
+      ],
+      "default": "Active"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of retainer services included"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "health_score": {
+      "type": "string",
+      "enum": [
+        "Green",
+        "Yellow",
+        "Red"
+      ],
+      "default": "Green"
+    },
+    "monthly_check_in_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "facility_name",
+    "mrr"
+  ]
+}

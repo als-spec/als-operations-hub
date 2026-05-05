@@ -1,0 +1,64 @@
+{
+  "name": "OutreachSequence",
+  "type": "object",
+  "properties": {
+    "prospect_id": {
+      "type": "string"
+    },
+    "facility_name": {
+      "type": "string",
+      "description": "Denormalized for display"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "Email",
+        "LinkedIn",
+        "Phone",
+        "Mail"
+      ],
+      "default": "Email"
+    },
+    "template_used": {
+      "type": "string"
+    },
+    "subject_line": {
+      "type": "string"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Sent",
+        "Opened",
+        "Replied",
+        "Bounced",
+        "No Response"
+      ],
+      "default": "Sent"
+    },
+    "touch_number": {
+      "type": "number",
+      "description": "Which touch in the sequence (1, 2, 3...)"
+    },
+    "reply_content": {
+      "type": "string"
+    },
+    "next_follow_up_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "prospect_id",
+    "facility_name",
+    "channel",
+    "sent_date"
+  ]
+}
