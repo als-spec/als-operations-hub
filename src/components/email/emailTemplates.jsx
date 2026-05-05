@@ -15,7 +15,7 @@ export const AUTO_VARS = [
   'OPERATOR_PHONE', 'FEE', 'KICKOFF_DATE', 'DELIVERY_DATE', 'ON_SITE_DATE',
   'DATA_DUE_DATE', 'CALL_LINK', 'RENEWAL_DATE', 'INVOICE_NUMBER',
   'INVOICE_AMOUNT', 'DUE_DATE', 'MONTHLY_FEE', 'GUARANTEE_THRESHOLD',
-  'WEIGHTED_TOTAL', 'TOTAL_OPPORTUNITY',
+  'WEIGHTED_TOTAL', 'TOTAL_OPPORTUNITY', 'PORTAL_LINK',
 ];
 
 export const EMAIL_TEMPLATES = [
@@ -146,13 +146,15 @@ To prepare, please have the following data items ready:
 
 All data should be submitted by {{AUTO:DATA_DUE_DATE}}. Our Operator, {{AUTO:OPERATOR_NAME}}, will send a secure upload link separately.
 
+You can track the progress of your engagement here: {{AUTO:PORTAL_LINK}}
+
 We're looking forward to getting started.
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
 ALS Professional Network
 {{AUTO:EMAIL}} · {{AUTO:PHONE}}`,
-    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'KICKOFF_DATE', 'CALL_LINK', 'DATA_DUE_DATE', 'OPERATOR_NAME', 'EMAIL', 'PHONE'],
+    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'KICKOFF_DATE', 'CALL_LINK', 'DATA_DUE_DATE', 'OPERATOR_NAME', 'EMAIL', 'PHONE', 'PORTAL_LINK'],
     manual_vars: [],
   },
   {
@@ -353,11 +355,13 @@ Data items needed by {{AUTO:DATA_DUE_DATE}}:
 Our on-site walkthrough is scheduled for {{AUTO:ON_SITE_DATE}}.
 Findings delivery target: {{AUTO:DELIVERY_DATE}}.
 
+You can track progress here: {{AUTO:PORTAL_LINK}}
+
 {{AUTO:OPERATOR_NAME}} ({{AUTO:OPERATOR_EMAIL}}) is your day-to-day contact for data coordination.
 
 Best,
 {{AUTO:FOUNDER_NAME}}`,
-    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'DATA_DUE_DATE', 'ON_SITE_DATE', 'DELIVERY_DATE', 'OPERATOR_NAME', 'OPERATOR_EMAIL'],
+    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'DATA_DUE_DATE', 'ON_SITE_DATE', 'DELIVERY_DATE', 'OPERATOR_NAME', 'OPERATOR_EMAIL', 'PORTAL_LINK'],
     manual_vars: ['DISCUSSION_POINT_1', 'DISCUSSION_POINT_2'],
   },
   {
@@ -893,6 +897,7 @@ export function buildAutoVars(record, recordType, user) {
     GUARANTEE_THRESHOLD: record.fee ? `$${(Number(record.fee) * 3).toLocaleString()}` : '',
     WEIGHTED_TOTAL: '',
     TOTAL_OPPORTUNITY: '',
+    PORTAL_LINK: record.portal_url || '',
   };
   return vars;
 }

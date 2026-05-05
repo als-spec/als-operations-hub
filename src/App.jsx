@@ -28,6 +28,7 @@ import Communications from '@/pages/Communications';
 import ClientEmail from '@/pages/ClientEmail';
 import Documents from '@/pages/Documents';
 import Settings from '@/pages/Settings';
+import ClientPortal from '@/pages/ClientPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
         <Route path="/documents" element={<Documents />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
+      <Route path="/portal/:token" element={<ClientPortal />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
