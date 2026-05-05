@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
+import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
 const DEFAULT_MILESTONES = [
@@ -329,6 +330,15 @@ export default function EngagementDetail() {
             recordType="engagement"
             onSave={(updates) => updateMutation.mutate(updates)}
           />
+
+          {!isVA && (
+            <PublicLinkPanel
+              resourceType="portal"
+              resourceId={engagement.id}
+              defaultRecipientEmail={engagement.admin_email || ''}
+              defaultRecipientName={engagement.admin_name || ''}
+            />
+          )}
 
           {/* On-Site Logistics */}
           <Card>

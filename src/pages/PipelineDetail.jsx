@@ -14,6 +14,7 @@ import { ArrowLeft, ExternalLink, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
+import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
 
 const STAGES = [
   'Discovery Call Scheduled', 'Discovery Complete', 'Proposal Call Scheduled',
@@ -226,6 +227,17 @@ export default function PipelineDetail() {
             onSave={(updates) => updateMutation.mutate(updates)}
             readOnly={isVA}
           />
+
+          {!isVA && (
+            <PublicLinkPanel
+              resourceType="sow"
+              resourceId={record.id}
+              defaultRecipientEmail={record.admin_email || ''}
+              defaultRecipientName={record.admin_name || ''}
+              disabled={!record.sow_generated_url}
+              disabledReason="Upload the SOW PDF (set sow_generated_url) before issuing a review link."
+            />
+          )}
 
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Decision Makers</CardTitle></CardHeader>
