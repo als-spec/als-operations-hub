@@ -1,0 +1,57 @@
+{
+  "name": "EmailSent",
+  "type": "object",
+  "properties": {
+    "linked_record_id": {
+      "type": "string"
+    },
+    "linked_record_type": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "engagement",
+        "retainer",
+        ""
+      ]
+    },
+    "linked_record_name": {
+      "type": "string"
+    },
+    "template_used": {
+      "type": "string"
+    },
+    "to_address": {
+      "type": "string"
+    },
+    "to_name": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "sent_at": {
+      "type": "string"
+    },
+    "sent_by": {
+      "type": "string"
+    },
+    "replied": {
+      "type": "boolean",
+      "default": false
+    },
+    "reply_date": {
+      "type": "string"
+    },
+    "reply_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "to_address",
+    "subject",
+    "body"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "enum": [
+        "general",
+        "daily-standup",
+        "pipeline",
+        "active-engagements",
+        "retainers",
+        "finance",
+        "legal-compliance",
+        "tools-and-tech"
+      ],
+      "default": "general"
+    },
+    "content": {
+      "type": "string"
+    },
+    "thread_parent_id": {
+      "type": "string",
+      "description": "If set, this is a thread reply"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "emoji": {
+            "type": "string"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "pinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "channel",
+    "content"
+  ]
+}

@@ -24,6 +24,8 @@ import Retainers from '@/pages/Retainers';
 import RetainerDetail from '@/pages/RetainerDetail';
 import RetainerForm from '@/pages/RetainerForm';
 import Outreach from '@/pages/Outreach';
+import Communications from '@/pages/Communications';
+import ClientEmail from '@/pages/ClientEmail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,6 +70,8 @@ const AuthenticatedApp = () => {
         <Route path="/retainers/new" element={<RetainerForm />} />
         <Route path="/retainers/:id" element={<RetainerDetail />} />
         <Route path="/outreach" element={<Outreach />} />
+        <Route path="/communications" element={<Communications />} />
+        <Route path="/email" element={<ClientEmail />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

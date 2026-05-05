@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GitBranch, Briefcase, Calendar,
-  ChevronLeft, ChevronRight, DollarSign, Send, RefreshCw
+  ChevronLeft, ChevronRight, DollarSign, Send, RefreshCw, MessageSquare, Mail
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +14,8 @@ const navItems = [
   { label: 'Engagements', path: '/engagements', icon: Briefcase, roles: ['founder', 'operator', 'admin'] },
   { label: 'Retainers', path: '/retainers', icon: RefreshCw, roles: ['founder', 'operator', 'admin'] },
   { label: 'Schedule', path: '/schedule', icon: Calendar, roles: ['founder', 'operator', 'analyst', 'admin'] },
+  { label: 'Communications', path: '/communications', icon: MessageSquare, roles: ['founder', 'operator', 'analyst', 'admin'] },
+  { label: 'Client Email', path: '/email', icon: Mail, roles: ['founder', 'operator', 'admin'] },
   { label: 'Financials', path: '/financials', icon: DollarSign, roles: ['founder', 'admin'] },
 ];
 
