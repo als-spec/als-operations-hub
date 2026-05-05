@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,12 @@ export default function RetainerForm() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const { data: prospects = [] } = useQuery({
+    queryKey: ['prospects'],
+    queryFn: () => base44.entities.Prospect.list('-facility_name', 200),
+    enabled: !isConversion,
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Retainer.create(data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['retainers'] }); navigate('/retainers'); },
@@ -56,8 +62,23 @@ export default function RetainerForm() {
           <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Client Info</CardTitle></CardHeader>
           <CardContent className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Facility Name *</Label>
-              <Input value={form.facility_name} onChange={e => set('facility_name', e.target.value)} required />
+              <Label>Facility *</Label>
+              {isConversion ? (
+                <Input value={form.facility_name} readOnly className="bg-muted" />
+              ) : (
+                <Select
+                  value={form.prospect_id || ''}
+                  onValueChange={v => {
+                    const p = prospects.find(x => x.id === v);
+                    setForm(f => ({ ...f, prospect_id: v, facility_name: p?.facility_name || '', admin_name: p?.admin_name || f.admin_name, admin_email: p?.admin_email || f.admin_email }));
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select a prospect…" /></SelectTrigger>
+                  <SelectContent>
+                    {prospects.map(p => <SelectItem key={p.id} value={p.id}>{p.facility_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>Admin Name</Label>

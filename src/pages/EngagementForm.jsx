@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import { addBusinessDays, format } from 'date-fns';
 
@@ -25,6 +26,11 @@ export default function EngagementForm() {
   });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const { data: prospects = [] } = useQuery({
+    queryKey: ['prospects'],
+    queryFn: () => base44.entities.Prospect.list('-facility_name', 200),
+  });
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Engagement.create(data),
@@ -56,7 +62,25 @@ export default function EngagementForm() {
       <form onSubmit={handleSubmit}>
         <Card>
           <CardContent className="space-y-4 pt-6">
-            <div><Label className="text-xs">Facility Name *</Label><Input value={form.facility_name} onChange={e => set('facility_name', e.target.value)} required className="mt-1" /></div>
+            <div>
+              <Label className="text-xs">Facility *</Label>
+              {form.facility_name && !prospects.length ? (
+                <Input value={form.facility_name} readOnly className="mt-1 bg-muted" />
+              ) : (
+                <Select
+                  value={form.prospect_id || ''}
+                  onValueChange={v => {
+                    const p = prospects.find(x => x.id === v);
+                    setForm(f => ({ ...f, prospect_id: v, facility_name: p?.facility_name || '', admin_name: p?.admin_name || f.admin_name, admin_email: p?.admin_email || f.admin_email }));
+                  }}
+                >
+                  <SelectTrigger className="mt-1"><SelectValue placeholder={form.facility_name || 'Select a prospect…'} /></SelectTrigger>
+                  <SelectContent>
+                    {prospects.map(p => <SelectItem key={p.id} value={p.id}>{p.facility_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div><Label className="text-xs">Administrator</Label><Input value={form.admin_name} onChange={e => set('admin_name', e.target.value)} className="mt-1" /></div>
               <div><Label className="text-xs">Admin Email</Label><Input type="email" value={form.admin_email} onChange={e => set('admin_email', e.target.value)} className="mt-1" /></div>
