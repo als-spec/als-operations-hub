@@ -1,0 +1,82 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "Invoice number (e.g. INV-2024-001)"
+    },
+    "linked_record_id": {
+      "type": "string"
+    },
+    "linked_record_type": {
+      "type": "string",
+      "enum": [
+        "engagement",
+        "retainer",
+        ""
+      ]
+    },
+    "facility_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "invoice_type": {
+      "type": "string",
+      "enum": [
+        "Deposit",
+        "Balance",
+        "Monthly Retainer",
+        "Ad Hoc"
+      ],
+      "default": "Monthly Retainer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Sent",
+        "Paid",
+        "Overdue",
+        "Void"
+      ],
+      "default": "Draft"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "ACH",
+        "Check",
+        "Wire",
+        "Credit Card",
+        "Other",
+        ""
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "facility_name",
+    "amount",
+    "invoice_type"
+  ]
+}

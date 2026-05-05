@@ -26,6 +26,7 @@ import RetainerForm from '@/pages/RetainerForm';
 import Outreach from '@/pages/Outreach';
 import Communications from '@/pages/Communications';
 import ClientEmail from '@/pages/ClientEmail';
+import Documents from '@/pages/Documents';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/outreach" element={<Outreach />} />
         <Route path="/communications" element={<Communications />} />
         <Route path="/email" element={<ClientEmail />} />
+        <Route path="/documents" element={<Documents />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

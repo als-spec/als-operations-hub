@@ -1,0 +1,59 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Document display name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "SOW",
+        "Proposal",
+        "Report",
+        "Contract",
+        "Invoice",
+        "Presentation",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "linked_record_id": {
+      "type": "string"
+    },
+    "linked_record_type": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "engagement",
+        "retainer",
+        ""
+      ]
+    },
+    "linked_record_name": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded file URL"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "file_size_kb": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "uploaded_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "file_url"
+  ]
+}
