@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GitBranch, Briefcase, Calendar,
@@ -7,17 +7,17 @@ import {
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { label: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['founder', 'operator', 'analyst', 'admin'] },
-  { label: 'Prospects', path: '/prospects', icon: Users, roles: ['founder', 'operator', 'admin'] },
-  { label: 'Outreach', path: '/outreach', icon: Send, roles: ['founder', 'operator', 'admin'] },
-  { label: 'Pipeline', path: '/pipeline', icon: GitBranch, roles: ['founder', 'operator', 'admin'] },
-  { label: 'Engagements', path: '/engagements', icon: Briefcase, roles: ['founder', 'operator', 'admin'] },
-  { label: 'Retainers', path: '/retainers', icon: RefreshCw, roles: ['founder', 'operator', 'admin'] },
-  { label: 'Schedule', path: '/schedule', icon: Calendar, roles: ['founder', 'operator', 'analyst', 'admin'] },
-  { label: 'Communications', path: '/communications', icon: MessageSquare, roles: ['founder', 'operator', 'analyst', 'admin'] },
-  { label: 'Client Email', path: '/email', icon: Mail, roles: ['founder', 'operator', 'admin'] },
-  { label: 'Financials', path: '/financials', icon: DollarSign, roles: ['founder', 'admin'] },
-  { label: 'Documents', path: '/documents', icon: FolderOpen, roles: ['founder', 'operator', 'analyst', 'admin'] },
+  { label: 'Dashboard',      path: '/',               icon: LayoutDashboard, roles: ['founder', 'operator', 'va', 'analyst', 'admin'] },
+  { label: 'Prospects',      path: '/prospects',      icon: Users,           roles: ['founder', 'operator', 'va', 'admin'] },
+  { label: 'Outreach',       path: '/outreach',       icon: Send,            roles: ['founder', 'operator', 'admin'] },
+  { label: 'Pipeline',       path: '/pipeline',       icon: GitBranch,       roles: ['founder', 'operator', 'va', 'admin'] },
+  { label: 'Engagements',    path: '/engagements',    icon: Briefcase,       roles: ['founder', 'operator', 'analyst', 'admin'] },
+  { label: 'Retainers',      path: '/retainers',      icon: RefreshCw,       roles: ['founder', 'operator', 'admin'] },
+  { label: 'Schedule',       path: '/schedule',       icon: Calendar,        roles: ['founder', 'operator', 'va', 'analyst', 'admin'] },
+  { label: 'Communications', path: '/communications', icon: MessageSquare,   roles: ['founder', 'operator', 'va', 'analyst', 'admin'] },
+  { label: 'Client Email',   path: '/email',          icon: Mail,            roles: ['founder', 'operator', 'va', 'admin'] },
+  { label: 'Financials',     path: '/financials',     icon: DollarSign,      roles: ['founder', 'admin'] },
+  { label: 'Documents',      path: '/documents',      icon: FolderOpen,      roles: ['founder', 'operator', 'va', 'analyst', 'admin'] },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed, userRole }) {
@@ -45,7 +45,7 @@ export default function Sidebar({ collapsed, setCollapsed, userRole }) {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
         {filteredNav.map(item => {
-          const isActive = location.pathname === item.path || 
+          const isActive = location.pathname === item.path ||
             (item.path !== '/' && location.pathname.startsWith(item.path));
           return (
             <Link

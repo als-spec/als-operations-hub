@@ -11,6 +11,7 @@ import { base44 } from '@/api/base44Client';
 const roleLabels = {
   founder: 'Founder',
   operator: 'Operator',
+  va: 'VA',
   analyst: 'Analyst',
   admin: 'Admin',
 };
@@ -19,6 +20,7 @@ const roleBadgeColors = {
   founder: 'bg-cobalt text-white',
   admin: 'bg-cobalt text-white',
   operator: 'bg-teal text-navy',
+  va: 'bg-warning text-white',
   analyst: 'bg-secondary text-secondary-foreground',
 };
 

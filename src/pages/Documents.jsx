@@ -39,7 +39,7 @@ const CATEGORY_COLORS = {
 
 export default function Documents() {
   const { user } = useCurrentUser();
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'founder';
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');

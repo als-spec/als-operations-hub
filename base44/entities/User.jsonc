@@ -5,12 +5,14 @@
     "role": {
       "type": "string",
       "enum": [
+        "admin",
         "founder",
         "operator",
+        "va",
         "analyst"
       ],
       "default": "operator",
-      "description": "User role controlling access"
+      "description": "User role controlling access permissions"
     }
   }
 }

@@ -14,7 +14,8 @@ export function useCurrentUser() {
 
   const isFounder = user?.role === 'founder' || user?.role === 'admin';
   const isOperator = user?.role === 'operator';
+  const isVA = user?.role === 'va';
   const isAnalyst = user?.role === 'analyst';
 
-  return { user, loading, isFounder, isOperator, isAnalyst };
+  return { user, loading, isFounder, isOperator, isVA, isAnalyst };
 }

@@ -9,7 +9,7 @@ import EmailComposer from '@/components/email/EmailComposer';
 import EmailLog from '@/components/email/EmailLog';
 
 export default function ClientEmail() {
-  const { user } = useCurrentUser();
+  const { user, isVA } = useCurrentUser();
   const [showComposer, setShowComposer] = useState(false);
   const [prefill, setPrefill] = useState(null);
 
@@ -46,12 +46,14 @@ export default function ClientEmail() {
           <h1 className="text-2xl font-bold tracking-tight">Client Email</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Template-based outbound email with full send log</p>
         </div>
-        <Button size="sm" onClick={() => { setPrefill(null); setShowComposer(true); }}>
-          <Plus className="w-4 h-4 mr-1" />Compose
-        </Button>
+        {!isVA && (
+          <Button size="sm" onClick={() => { setPrefill(null); setShowComposer(true); }}>
+            <Plus className="w-4 h-4 mr-1" />Compose
+          </Button>
+        )}
       </div>
 
-      {showComposer && (
+      {showComposer && !isVA && (
         <EmailComposer
           prefill={prefill}
           prospects={prospects}
@@ -67,7 +69,7 @@ export default function ClientEmail() {
         emails={sentEmails}
         isLoading={isLoading}
         onRefetch={refetch}
-        onCompose={(p) => { setPrefill(p); setShowComposer(true); }}
+        onCompose={isVA ? undefined : (p) => { setPrefill(p); setShowComposer(true); }}
       />
     </div>
   );
