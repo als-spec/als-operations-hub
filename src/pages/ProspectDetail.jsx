@@ -139,68 +139,105 @@ export default function ProspectDetail() {
         {/* Left column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Contact */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground">Administrator</p>
-                <p className="font-medium">{prospect.admin_name || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                {prospect.admin_email ? (
-                  <a href={`mailto:${prospect.admin_email}`} className="text-primary flex items-center gap-1">{prospect.admin_email} <Mail className="w-3 h-3" /></a>
-                ) : <p>—</p>}
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Phone</p>
-                <p>{prospect.admin_phone || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">LinkedIn</p>
-                {prospect.admin_linkedin ? (
-                  <a href={prospect.admin_linkedin} target="_blank" rel="noopener noreferrer" className="text-primary flex items-center gap-1">Profile <ExternalLink className="w-3 h-3" /></a>
-                ) : <p>—</p>}
-              </div>
-            </CardContent>
-          </Card>
+           <Card>
+             <CardHeader className="pb-3">
+               <CardTitle className="text-sm font-semibold">Contact Information</CardTitle>
+             </CardHeader>
+             <CardContent className="grid sm:grid-cols-2 gap-4 text-sm">
+               <div>
+                 <p className="text-xs text-muted-foreground">Administrator</p>
+                 <Input
+                   value={prospect.admin_name || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_name: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="Name"
+                 />
+               </div>
+               <div>
+                 <p className="text-xs text-muted-foreground">Email</p>
+                 <Input
+                   value={prospect.admin_email || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_email: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="Email"
+                 />
+               </div>
+               <div>
+                 <p className="text-xs text-muted-foreground">Phone</p>
+                 <Input
+                   value={prospect.admin_phone || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_phone: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="Phone"
+                 />
+               </div>
+               <div>
+                 <p className="text-xs text-muted-foreground">LinkedIn</p>
+                 <Input
+                   value={prospect.admin_linkedin || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_linkedin: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="LinkedIn URL"
+                 />
+               </div>
+             </CardContent>
+           </Card>
 
           {/* Facility Profile */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Facility Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="grid sm:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground">Operating Rooms</p>
-                <p className="font-medium">{prospect.or_count || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Specialty Focus</p>
-                <p className="font-medium">{prospect.specialty_focus || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Est. Supply Spend</p>
-                <p className="font-medium">{prospect.estimated_supply_spend ? `$${prospect.estimated_supply_spend.toLocaleString()}` : '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">GPO Affiliation</p>
-                <p className="font-medium">{prospect.gpo_affiliation || '—'}</p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-xs text-muted-foreground">Physician Owners</p>
-                {prospect.physician_owners?.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {prospect.physician_owners.map((po, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">{po.name}</Badge>
-                    ))}
-                  </div>
-                ) : <p>—</p>}
-              </div>
-            </CardContent>
-          </Card>
+           <Card>
+             <CardHeader className="pb-3">
+               <CardTitle className="text-sm font-semibold">Facility Profile</CardTitle>
+             </CardHeader>
+             <CardContent className="grid sm:grid-cols-3 gap-4 text-sm">
+               <div>
+                 <p className="text-xs text-muted-foreground">Operating Rooms</p>
+                 <Input
+                   type="number"
+                   value={prospect.or_count || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { or_count: parseInt(e.target.value) || null } })}
+                   className="text-sm mt-1"
+                   placeholder="Count"
+                 />
+               </div>
+               <div>
+                 <p className="text-xs text-muted-foreground">Specialty Focus</p>
+                 <Input
+                   value={prospect.specialty_focus || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { specialty_focus: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="Specialty"
+                 />
+               </div>
+               <div>
+                 <p className="text-xs text-muted-foreground">Est. Supply Spend</p>
+                 <Input
+                   type="number"
+                   value={prospect.estimated_supply_spend || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { estimated_supply_spend: parseInt(e.target.value) || null } })}
+                   className="text-sm mt-1"
+                   placeholder="Amount"
+                 />
+               </div>
+               <div>
+                 <p className="text-xs text-muted-foreground">GPO Affiliation</p>
+                 <Input
+                   value={prospect.gpo_affiliation || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { gpo_affiliation: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="GPO"
+                 />
+               </div>
+               <div className="sm:col-span-2">
+                 <p className="text-xs text-muted-foreground">County</p>
+                 <Input
+                   value={prospect.county || ''}
+                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { county: e.target.value } })}
+                   className="text-sm mt-1"
+                   placeholder="County"
+                 />
+               </div>
+             </CardContent>
+           </Card>
 
           {/* Outreach History */}
           {outreachHistory.length > 0 && (
