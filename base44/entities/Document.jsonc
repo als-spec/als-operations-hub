@@ -13,6 +13,7 @@
         "Email Templates",
         "Call Scripts",
         "Client Deliverables",
+        "Client Submitted",
         "Internal Working Templates",
         "Reference"
       ],
@@ -73,6 +74,14 @@
     },
     "uploaded_by": {
       "type": "string"
+    },
+    "via_public_token_id": {
+      "type": "string",
+      "description": "Set when the file was uploaded via a client-portal token (clientPortalUpload). Empty for operator-side uploads."
+    },
+    "data_request_item_name": {
+      "type": "string",
+      "description": "When uploaded via a portal, the data_request item this submission corresponds to."
     }
   },
   "required": [

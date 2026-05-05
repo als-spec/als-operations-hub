@@ -1,11 +1,13 @@
+import { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Loader2, ExternalLink, Calendar, User, Briefcase, FileCheck,
-  CheckCircle2, Clock, FileText, BarChart3, Map, ChevronRight,
+  CheckCircle2, Clock, FileText, BarChart3, Map, ChevronRight, Upload,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import EmailVerificationGate from '@/components/public/EmailVerificationGate';
@@ -82,7 +84,11 @@ function PortalContent({ token }) {
     <div className="space-y-4">
       <OverviewCard engagement={e} />
       <ProgressCard milestones={e.milestones || []} />
-      <DataRequestsCard items={e.data_requests || []} />
+      <DataRequestsCard
+        items={e.data_requests || []}
+        canUpload={!!data?.can_upload}
+        token={token}
+      />
       <DeliverablesCard items={e.deliverables || []} />
       {e.findings_delivered && <FindingsCard engagement={e} />}
       <SowReferenceCard engagement={e} />
@@ -191,7 +197,23 @@ const DATA_STATUS_TONE = {
   'Incomplete': 'bg-warning/10 text-warning',
 };
 
-function DataRequestsCard({ items }) {
+const ACCEPT_ATTR = '.pdf,.docx,.xlsx,.csv,.png,.jpg,.jpeg,.txt';
+const MAX_BYTES = 25 * 1024 * 1024;
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const idx = typeof dataUrl === 'string' ? dataUrl.indexOf(',') : -1;
+      resolve(idx >= 0 ? dataUrl.slice(idx + 1) : dataUrl);
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function DataRequestsCard({ items, canUpload, token }) {
   if (!items.length) return null;
   const received = items.filter((d) => d.status === 'Received').length;
 
@@ -204,23 +226,109 @@ function DataRequestsCard({ items }) {
           </CardTitle>
           <span className="text-xs text-muted-foreground">{received}/{items.length} received</span>
         </div>
+        {canUpload && (
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Click <strong>Upload</strong> on any row to submit a file. PDF / DOCX / XLSX / CSV / PNG / JPG, up to 25 MB each.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-1.5">
         {items.map((d, i) => (
-          <div key={i} className="flex items-center justify-between gap-3 p-2 rounded-md bg-secondary/30">
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{d.item_name || '—'}</p>
-              {d.due_date && (
-                <p className="text-[10px] text-muted-foreground">due {fmtDate(d.due_date, 'MMM d')}</p>
-              )}
-            </div>
-            <Badge className={`text-[10px] ${DATA_STATUS_TONE[d.status] || DATA_STATUS_TONE['Not Requested']}`}>
-              {d.status || 'Not Requested'}
-            </Badge>
-          </div>
+          <DataRequestRow
+            key={`${d.item_name || i}-${i}`}
+            item={d}
+            canUpload={canUpload}
+            token={token}
+          />
         ))}
       </CardContent>
     </Card>
+  );
+}
+
+function DataRequestRow({ item, canUpload, token }) {
+  const qc = useQueryClient();
+  const fileRef = useRef(null);
+  const [error, setError] = useState('');
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file) => {
+      const file_base64 = await fileToBase64(file);
+      return callGuardedPublicFunction('clientPortalUpload', token, {
+        item_name: item.item_name,
+        file_name: file.name,
+        content_type: file.type || 'application/octet-stream',
+        file_base64,
+      });
+    },
+    onSuccess: () => {
+      setError('');
+      qc.invalidateQueries({ queryKey: ['client-portal', token] });
+    },
+    onError: (err) => {
+      setError(err?.message || 'Upload failed.');
+    },
+  });
+
+  const onPick = () => {
+    setError('');
+    fileRef.current?.click();
+  };
+  const onChange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_BYTES) {
+      setError(`File exceeds ${MAX_BYTES / (1024 * 1024)} MB.`);
+      return;
+    }
+    uploadMutation.mutate(file);
+  };
+
+  const showUpload =
+    canUpload && item.status !== 'Received' && !!item.item_name;
+
+  return (
+    <div className="p-2 rounded-md bg-secondary/30 space-y-1.5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate">{item.item_name || '—'}</p>
+          {item.due_date && (
+            <p className="text-[10px] text-muted-foreground">due {fmtDate(item.due_date, 'MMM d')}</p>
+          )}
+        </div>
+        <Badge
+          className={`text-[10px] ${DATA_STATUS_TONE[item.status] || DATA_STATUS_TONE['Not Requested']}`}
+        >
+          {item.status || 'Not Requested'}
+        </Badge>
+        {showUpload && (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs gap-1"
+              disabled={uploadMutation.isPending}
+              onClick={onPick}
+            >
+              {uploadMutation.isPending ? (
+                <><Loader2 className="w-3 h-3 animate-spin" />Uploading&hellip;</>
+              ) : (
+                <><Upload className="w-3 h-3" />Upload</>
+              )}
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept={ACCEPT_ATTR}
+              onChange={onChange}
+              className="hidden"
+            />
+          </>
+        )}
+      </div>
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
+    </div>
   );
 }
 
