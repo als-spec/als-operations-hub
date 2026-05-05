@@ -53,13 +53,13 @@ export default function Sidebar({ collapsed, setCollapsed, userRole }) {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors border-l-4",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-teal-10 text-white border-l-teal"
+                  : "text-sidebar-muted-foreground border-l-transparent hover:bg-teal-15 hover:text-white"
               )}
             >
-              <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive && "text-sidebar-primary")} />
+              <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive && "text-teal")} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );
