@@ -1,0 +1,33 @@
+{
+  "name": "VerifiedSession",
+  "type": "object",
+  "description": "Server-side session record returned to a public-page browser after successful email verification. The session_id (random) is stored in browser sessionStorage and re-presented on every guarded public function call. TTL = 24h.",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "Random urlsafe-base64, >=256 bits."
+    },
+    "token_id": {
+      "type": "string",
+      "description": "Links to the PublicAccessToken this session was issued for."
+    },
+    "verified_email": {
+      "type": "string"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ip": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    }
+  },
+  "required": ["session_id", "token_id", "verified_email", "issued_at", "expires_at"]
+}

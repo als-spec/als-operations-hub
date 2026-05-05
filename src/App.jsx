@@ -9,6 +9,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import PublicLayout from '@/components/layout/PublicLayout';
 import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
+import PublicSowReview from '@/pages/public/PublicSowReview';
+import ClientPortal from '@/pages/public/ClientPortal';
 import Dashboard from '@/pages/Dashboard';
 import Prospects from '@/pages/Prospects';
 import ProspectDetail from '@/pages/ProspectDetail';
@@ -88,6 +90,8 @@ const PublicRoutes = () => (
   <Routes>
     <Route element={<PublicLayout />}>
       <Route path="/p/expired" element={<PublicLinkExpired />} />
+      <Route path="/p/sow/:token" element={<PublicSowReview />} />
+      <Route path="/p/portal/:token" element={<ClientPortal />} />
     </Route>
     <Route path="/p/*" element={<PublicLinkExpired />} />
   </Routes>
