@@ -13,8 +13,14 @@ export default function EngagementForm() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
+  const params = new URLSearchParams(window.location.search);
   const [form, setForm] = useState({
-    facility_name: '', admin_name: '', admin_email: '', fee: '',
+    facility_name: params.get('facility_name') || '',
+    admin_name: params.get('admin_name') || '',
+    admin_email: '',
+    fee: params.get('fee') || '',
+    prospect_id: params.get('prospect_id') || '',
+    pipeline_record_id: params.get('pipeline_record_id') || '',
     kickoff_date: '', on_site_date: '', operator_name: '',
   });
 

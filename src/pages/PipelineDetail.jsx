@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
@@ -84,12 +84,28 @@ export default function PipelineDetail() {
             </div>
           </div>
         </div>
-        <Select value={record.stage} onValueChange={handleStageChange} disabled={isOperator && ['SOW Sent', 'SOW Signed'].includes(record.stage)}>
-          <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          {['SOW Signed', 'Deposit Received'].includes(record.stage) && (
+            <Button size="sm" onClick={() => {
+              const params = new URLSearchParams({
+                prospect_id: record.prospect_id || '',
+                pipeline_record_id: record.id,
+                facility_name: record.facility_name,
+                admin_name: record.admin_name || '',
+                fee: record.proposed_fee || '',
+              });
+              navigate(`/engagements/new?${params.toString()}`);
+            }}>
+              <Briefcase className="w-3.5 h-3.5 mr-1" /> Start Engagement
+            </Button>
+          )}
+          <Select value={record.stage} onValueChange={handleStageChange} disabled={isOperator && ['SOW Sent', 'SOW Signed'].includes(record.stage)}>
+            <SelectTrigger className="w-52 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

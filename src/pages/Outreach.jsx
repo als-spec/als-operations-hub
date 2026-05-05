@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Send, Search, Mail, Linkedin, Phone } from 'lucide-react';
+import { Plus, Send, Search, Mail, Linkedin, Phone, LayoutList, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import OutreachForm from '@/components/outreach/OutreachForm';
 
@@ -31,6 +31,7 @@ export default function Outreach() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showForm, setShowForm] = useState(false);
+  const [groupByProspect, setGroupByProspect] = useState(false);
 
   const { data: sequences = [], isLoading } = useQuery({
     queryKey: ['outreach'],
@@ -73,9 +74,15 @@ export default function Outreach() {
           <h1 className="text-2xl font-bold tracking-tight">Outreach</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Prospect contact sequences and follow-up cadence</p>
         </div>
-        <Button size="sm" onClick={() => setShowForm(true)}>
-          <Plus className="w-4 h-4 mr-1" /> Log Outreach
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setGroupByProspect(g => !g)}>
+            {groupByProspect ? <LayoutList className="w-4 h-4 mr-1" /> : <Users className="w-4 h-4 mr-1" />}
+            {groupByProspect ? 'Flat' : 'By Prospect'}
+          </Button>
+          <Button size="sm" onClick={() => setShowForm(true)}>
+            <Plus className="w-4 h-4 mr-1" /> Log Outreach
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -105,7 +112,7 @@ export default function Outreach() {
         </Select>
       </div>
 
-      {/* Table */}
+      {/* List */}
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" /></div>
       ) : filtered.length === 0 ? (
@@ -113,7 +120,55 @@ export default function Outreach() {
           <Send className="w-8 h-8 mx-auto mb-3 opacity-30" />
           <p className="text-sm">No outreach logged yet.</p>
         </div>
+      ) : groupByProspect ? (
+        // Grouped view
+        <div className="space-y-4">
+          {Object.entries(
+            filtered.reduce((acc, seq) => {
+              const key = seq.facility_name || 'Unknown';
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(seq);
+              return acc;
+            }, {})
+          ).sort(([a], [b]) => a.localeCompare(b)).map(([facility, touches]) => (
+            <Card key={facility}>
+              <CardHeader className="pb-2 pt-4 px-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold">{facility}</CardTitle>
+                  <span className="text-xs text-muted-foreground">{touches.length} touch{touches.length !== 1 ? 'es' : ''}</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  {touches.sort((a, b) => (a.touch_number || 0) - (b.touch_number || 0)).map(seq => {
+                    const Icon = channelIcons[seq.channel] || Mail;
+                    const isFollowUpDue = seq.next_follow_up_date && new Date(seq.next_follow_up_date) <= new Date();
+                    return (
+                      <div key={seq.id} className="flex items-center gap-4 px-4 py-2.5 hover:bg-secondary/30 transition-colors">
+                        <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            {seq.touch_number && <span className="text-[10px] bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded">#{seq.touch_number}</span>}
+                            {seq.subject_line && <p className="text-xs text-muted-foreground truncate">{seq.subject_line}</p>}
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground flex-shrink-0">{seq.sent_date ? format(new Date(seq.sent_date), 'MMM d') : '—'}</p>
+                        {seq.next_follow_up_date && (
+                          <p className={`text-[10px] flex-shrink-0 ${isFollowUpDue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                            FU: {format(new Date(seq.next_follow_up_date), 'MMM d')}
+                          </p>
+                        )}
+                        <Badge className={`text-[10px] cursor-pointer flex-shrink-0 ${statusColors[seq.status]}`} onClick={() => cycleStatus(seq)}>{seq.status}</Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : (
+        // Flat view
         <Card>
           <CardContent className="p-0">
             <div className="divide-y divide-border">
@@ -138,10 +193,7 @@ export default function Outreach() {
                         </p>
                       )}
                     </div>
-                    <Badge
-                      className={`text-[10px] cursor-pointer flex-shrink-0 ${statusColors[seq.status]}`}
-                      onClick={() => cycleStatus(seq)}
-                    >{seq.status}</Badge>
+                    <Badge className={`text-[10px] cursor-pointer flex-shrink-0 ${statusColors[seq.status]}`} onClick={() => cycleStatus(seq)}>{seq.status}</Badge>
                   </div>
                 );
               })}

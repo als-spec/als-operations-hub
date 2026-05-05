@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Search, ArrowUpDown } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 
 const tierColors = { A: 'bg-teal text-navy', B: 'bg-primary text-white', C: 'bg-secondary text-secondary-foreground' };
 const stageColors = {
@@ -109,13 +109,14 @@ export default function Prospects() {
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('next_action_date')}>
                 <span className="flex items-center gap-1">Next Action <ArrowUpDown className="w-3 h-3" /></span>
               </TableHead>
+              <TableHead>Stale?</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-sm text-muted-foreground">Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-sm text-muted-foreground">Loading…</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-sm text-muted-foreground">No prospects found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-sm text-muted-foreground">No prospects found</TableCell></TableRow>
             ) : (
               filtered.map(p => (
                 <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/prospects/${p.id}`)}>
@@ -130,7 +131,16 @@ export default function Prospects() {
                     <Badge variant="secondary" className={`text-[10px] ${stageColors[p.stage] || ''}`}>{p.stage || 'Target'}</Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {p.next_action_date ? format(new Date(p.next_action_date), 'MMM d') : '—'}
+                   {p.next_action_date ? format(new Date(p.next_action_date), 'MMM d') : '—'}
+                  </TableCell>
+                  <TableCell>
+                   {(() => {
+                     if (!p.last_contact_date) return null;
+                     const days = differenceInDays(new Date(), new Date(p.last_contact_date));
+                     if (days >= 180) return <Badge className="text-[10px] bg-destructive/10 text-destructive">Stale 180d</Badge>;
+                     if (days >= 90) return <Badge className="text-[10px] bg-warning/10 text-warning">Stale 90d</Badge>;
+                     return null;
+                   })()}
                   </TableCell>
                 </TableRow>
               ))

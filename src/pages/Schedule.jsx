@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, ChevronLeft, ChevronRight, Video, MapPin } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Video, MapPin, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday
@@ -151,12 +152,20 @@ export default function Schedule() {
                       <p className="text-sm font-medium">{event.title}</p>
                       {event.scheduled_time && <p className="text-xs text-muted-foreground">{event.scheduled_time} · {event.duration_minutes || 30} min</p>}
                       {event.attendees && <p className="text-xs text-muted-foreground">{event.attendees}</p>}
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {event.call_link && (
                           <a href={event.call_link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1"><Video className="w-3 h-3" />Join</a>
                         )}
                         {event.location && (
                           <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{event.location}</span>
+                        )}
+                        {event.linked_record_id && event.linked_record_type && (
+                          <Link
+                            to={`/${event.linked_record_type === 'prospect' ? 'prospects' : event.linked_record_type === 'pipeline' ? 'pipeline' : event.linked_record_type === 'retainer' ? 'retainers' : 'engagements'}/${event.linked_record_id}`}
+                            className="text-xs text-primary flex items-center gap-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />View Record
+                          </Link>
                         )}
                       </div>
                     </div>

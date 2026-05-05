@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Phone, Mail, Linkedin, Building, Clock, Plus, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Mail, Linkedin, Clock, Plus, ExternalLink, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
@@ -35,6 +35,12 @@ export default function ProspectDetail() {
   const { data: activities = [] } = useQuery({
     queryKey: ['prospect-activities', prospectId],
     queryFn: () => base44.entities.ProspectActivity.filter({ prospect_id: prospectId }, '-created_date', 50),
+    enabled: !!prospectId && prospectId !== 'new',
+  });
+
+  const { data: outreachHistory = [] } = useQuery({
+    queryKey: ['prospect-outreach', prospectId],
+    queryFn: () => base44.entities.OutreachSequence.filter({ prospect_id: prospectId }, '-sent_date', 20),
     enabled: !!prospectId && prospectId !== 'new',
   });
 
@@ -195,6 +201,34 @@ export default function ProspectDetail() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Outreach History */}
+          {outreachHistory.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Send className="w-4 h-4" /> Outreach History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {outreachHistory.map((o, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2 rounded-md bg-secondary/30 text-sm">
+                    <span className="text-[10px] bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded flex-shrink-0">
+                      {o.channel} #{o.touch_number || '?'}
+                    </span>
+                    <p className="flex-1 truncate text-xs">{o.subject_line || '—'}</p>
+                    <span className="text-[10px] text-muted-foreground flex-shrink-0">{o.sent_date ? format(new Date(o.sent_date), 'MMM d') : ''}</span>
+                    <Badge className={`text-[10px] flex-shrink-0 ${
+                      o.status === 'Replied' ? 'bg-success/10 text-success' :
+                      o.status === 'Opened' ? 'bg-primary/10 text-primary' :
+                      o.status === 'Bounced' ? 'bg-destructive/10 text-destructive' :
+                      'bg-secondary text-secondary-foreground'
+                    }`}>{o.status}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Activity Log */}
           <Card>
