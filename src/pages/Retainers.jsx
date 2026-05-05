@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, TrendingUp, AlertCircle } from 'lucide-react';
+import { Plus, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 
 const healthColors = {
@@ -72,6 +72,11 @@ export default function Retainers() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {retainers.map(r => {
             const daysToRenewal = r.renewal_date ? differenceInDays(new Date(r.renewal_date), new Date()) : null;
+            const cadence = r.monthly_cadence || [];
+            const cadenceTotal = cadence.length;
+            const cadenceDone = cadence.filter(c => c.status === 'Complete').length;
+            const cadenceOverdue = cadence.filter(c => c.status === 'Overdue').length;
+            const cadenceOnTrack = cadenceTotal > 0 && cadenceDone === cadenceTotal;
             return (
               <Link key={r.id} to={`/retainers/${r.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
@@ -89,6 +94,18 @@ export default function Retainers() {
                         <p className="text-xl font-bold">${r.mrr?.toLocaleString()}</p>
                       </div>
                       <Badge className={`text-[10px] ${healthColors[r.health_score || 'Green']}`}>{r.health_score || 'Green'}</Badge>
+                    </div>
+                    {/* Cadence status */}
+                    <div className="flex items-center gap-1.5 text-xs">
+                      {cadenceOnTrack ? (
+                        <><CheckCircle2 className="w-3 h-3 text-success" /><span className="text-success font-medium">Cadence on track</span></>
+                      ) : cadenceOverdue > 0 ? (
+                        <><AlertCircle className="w-3 h-3 text-destructive" /><span className="text-destructive font-medium">{cadenceOverdue} overdue</span></>
+                      ) : cadenceTotal > 0 ? (
+                        <span className="text-muted-foreground">{cadenceDone}/{cadenceTotal} cadence items done</span>
+                      ) : (
+                        <span className="text-muted-foreground">Cadence not set</span>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground border-t pt-3">
                       <div>

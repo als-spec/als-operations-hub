@@ -43,6 +43,15 @@
       ],
       "default": "Active"
     },
+    "health_score": {
+      "type": "string",
+      "enum": [
+        "Green",
+        "Yellow",
+        "Red"
+      ],
+      "default": "Green"
+    },
     "services": {
       "type": "array",
       "items": {
@@ -52,15 +61,6 @@
     },
     "notes": {
       "type": "string"
-    },
-    "health_score": {
-      "type": "string",
-      "enum": [
-        "Green",
-        "Yellow",
-        "Red"
-      ],
-      "default": "Green"
     },
     "monthly_check_in_log": {
       "type": "array",
@@ -78,6 +78,109 @@
           }
         }
       }
+    },
+    "monthly_cadence": {
+      "type": "array",
+      "description": "Monthly recurring cadence items with status",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Pending",
+              "Complete",
+              "Overdue"
+            ],
+            "default": "Pending"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "completed_date": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "quarterly_deliverables": {
+      "type": "array",
+      "description": "Quarterly deliverable items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "quarter": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Pending",
+              "In Progress",
+              "Complete"
+            ],
+            "default": "Pending"
+          },
+          "completed_date": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "savings_realized": {
+      "type": "array",
+      "description": "Cumulative savings documented by category",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "period": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "referral_log": {
+      "type": "array",
+      "description": "Referrals made by this client",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "facility": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "renewal_notes": {
+      "type": "string",
+      "description": "Upsell opportunities and scope changes for renewal"
     }
   },
   "required": [
