@@ -18,6 +18,9 @@ const ALLOWED_ENGAGEMENT_FIELDS = [
   'findings_deck_url', 'findings_deck_delivered_date',
   'dashboard_url', 'dashboard_delivered_date',
   'roadmap_url', 'roadmap_delivered_date',
+  'findings_acknowledged_at',
+  'findings_acknowledged_by_name',
+  'findings_acknowledgment_notes',
 ];
 
 const ALLOWED_MILESTONE_FIELDS = ['type', 'completed', 'completed_date'];

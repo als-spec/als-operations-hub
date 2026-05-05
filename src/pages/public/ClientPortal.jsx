@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Loader2, ExternalLink, Calendar, User, Briefcase, FileCheck,
-  CheckCircle2, Clock, FileText, BarChart3, Map, ChevronRight, Upload,
+  CheckCircle2, Clock, FileText, BarChart3, Map, ChevronRight, Upload, ShieldCheck,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { format, parseISO } from 'date-fns';
 import EmailVerificationGate from '@/components/public/EmailVerificationGate';
 import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
@@ -90,7 +93,13 @@ function PortalContent({ token }) {
         token={token}
       />
       <DeliverablesCard items={e.deliverables || []} />
-      {e.findings_delivered && <FindingsCard engagement={e} />}
+      {e.findings_delivered && (
+        <FindingsCard
+          engagement={e}
+          canAcknowledge={!!data?.can_acknowledge}
+          token={token}
+        />
+      )}
       <SowReferenceCard engagement={e} />
     </div>
   );
@@ -377,7 +386,7 @@ function DeliverablesCard({ items }) {
   );
 }
 
-function FindingsCard({ engagement }) {
+function FindingsCard({ engagement, canAcknowledge, token }) {
   const e = engagement;
   const items = [
     { label: 'Findings deck', url: e.findings_deck_url, date: e.findings_deck_delivered_date, icon: FileText },
@@ -394,27 +403,160 @@ function FindingsCard({ engagement }) {
           <CheckCircle2 className="w-4 h-4 text-success" /> Findings Delivered
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-1.5">
-        {items.map(({ label, url, date, icon: Icon }) => (
-          <a
-            key={label}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between gap-3 p-2.5 rounded-md bg-secondary/30 hover:bg-secondary/60 transition-colors"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <Icon className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-sm font-medium truncate">{label}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {date && <span className="text-[10px] text-muted-foreground">{fmtDate(date, 'MMM d')}</span>}
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </div>
-          </a>
-        ))}
+      <CardContent className="space-y-3">
+        <div className="space-y-1.5">
+          {items.map(({ label, url, date, icon: Icon }) => (
+            <a
+              key={label}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-3 p-2.5 rounded-md bg-secondary/30 hover:bg-secondary/60 transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Icon className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="text-sm font-medium truncate">{label}</span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {date && <span className="text-[10px] text-muted-foreground">{fmtDate(date, 'MMM d')}</span>}
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <FindingsAcknowledgment
+          engagement={e}
+          canAcknowledge={canAcknowledge}
+          token={token}
+        />
       </CardContent>
     </Card>
+  );
+}
+
+function FindingsAcknowledgment({ engagement, canAcknowledge, token }) {
+  const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+
+  const ackMutation = useMutation({
+    mutationFn: (payload) => callGuardedPublicFunction('acknowledgeFindings', token, payload),
+    onSuccess: () => {
+      setError('');
+      setExpanded(false);
+      qc.invalidateQueries({ queryKey: ['client-portal', token] });
+    },
+    onError: (err) => {
+      // 409 = already acknowledged. Refetch so the UI flips to the receipt state.
+      if (err?.status === 409) {
+        qc.invalidateQueries({ queryKey: ['client-portal', token] });
+        return;
+      }
+      setError(err?.message || 'Could not record acknowledgment.');
+    },
+  });
+
+  if (engagement.findings_acknowledged_at) {
+    return (
+      <div className="border-t border-border pt-3 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-success" />
+          <p className="text-sm">
+            <span className="font-medium">Findings acknowledged</span>
+            {engagement.findings_acknowledged_by_name && (
+              <> by {engagement.findings_acknowledged_by_name}</>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {' '}on {fmtDate(engagement.findings_acknowledged_at, 'PPp')}
+            </span>
+          </p>
+        </div>
+        {engagement.findings_acknowledgment_notes && (
+          <blockquote className="text-xs text-muted-foreground border-l-2 border-border pl-3 ml-6 whitespace-pre-wrap">
+            {engagement.findings_acknowledgment_notes}
+          </blockquote>
+        )}
+      </div>
+    );
+  }
+
+  if (!canAcknowledge) return null;
+
+  if (!expanded) {
+    return (
+      <div className="border-t border-border pt-3">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => setExpanded(true)}
+        >
+          <ShieldCheck className="w-4 h-4" /> Acknowledge findings
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="border-t border-border pt-3 space-y-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!accepted) {
+          setError('Please confirm by checking the box.');
+          return;
+        }
+        setError('');
+        ackMutation.mutate({ accepted: true, notes });
+      }}
+    >
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="ack"
+          checked={accepted}
+          onCheckedChange={(v) => setAccepted(v === true)}
+          className="mt-0.5"
+        />
+        <Label htmlFor="ack" className="text-sm leading-snug cursor-pointer">
+          I have reviewed the findings deliverables for{' '}
+          <span className="font-medium">{engagement.facility_name || 'this engagement'}</span>{' '}
+          and acknowledge receipt on behalf of the facility.
+        </Label>
+      </div>
+      <div>
+        <Label htmlFor="ack-notes" className="text-xs">Comments (optional)</Label>
+        <Textarea
+          id="ack-notes"
+          rows={3}
+          maxLength={2000}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Anything you want to flag for the operator…"
+          className="mt-1 text-sm"
+        />
+        <p className="text-[10px] text-muted-foreground mt-1">{notes.length}/2000</p>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => { setExpanded(false); setAccepted(false); setNotes(''); setError(''); }}
+          disabled={ackMutation.isPending}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" size="sm" disabled={ackMutation.isPending || !accepted} className="gap-2">
+          {ackMutation.isPending ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" />Submitting&hellip;</>
+          ) : 'Submit acknowledgment'}
+        </Button>
+      </div>
+    </form>
   );
 }
 

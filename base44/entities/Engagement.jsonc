@@ -248,6 +248,31 @@
     "roadmap_delivered_date": {
       "type": "string",
       "format": "date"
+    },
+    "findings_acknowledged_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set when the client clicks Acknowledge findings on the portal."
+    },
+    "findings_acknowledged_by_name": {
+      "type": "string"
+    },
+    "findings_acknowledged_by_email": {
+      "type": "string"
+    },
+    "findings_acknowledgment_ip": {
+      "type": "string"
+    },
+    "findings_acknowledgment_user_agent": {
+      "type": "string"
+    },
+    "findings_acknowledgment_notes": {
+      "type": "string",
+      "description": "Optional free-text comments captured at acknowledgment time."
+    },
+    "findings_acknowledgment_token_id": {
+      "type": "string",
+      "description": "Back-link to the PublicAccessToken used for ack, for audit trail."
     }
   },
   "required": [

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
 import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
@@ -148,6 +148,16 @@ export default function EngagementDetail() {
               {engagement.kickoff_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{format(new Date(engagement.kickoff_date), 'MMM d')} → {engagement.delivery_target ? format(new Date(engagement.delivery_target), 'MMM d') : '—'}</span>}
               {engagement.operator_name && <span className="flex items-center gap-1"><User className="w-3 h-3" />{engagement.operator_name}</span>}
             </div>
+            {engagement.findings_acknowledged_at && (
+              <div className="flex items-start gap-1.5 mt-2 text-xs text-success">
+                <ShieldCheck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                <span>
+                  Findings acknowledged
+                  {engagement.findings_acknowledged_by_name && <> by <span className="font-medium">{engagement.findings_acknowledged_by_name}</span></>}
+                  <span className="text-muted-foreground"> on {format(new Date(engagement.findings_acknowledged_at), 'MMM d, yyyy h:mm a')}</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
