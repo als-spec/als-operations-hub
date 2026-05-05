@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Plus, ExternalLink } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import DocumentsPanel from '@/components/documents/DocumentsPanel';
 
 import MonthlyCadenceTracker from '@/components/retainer/MonthlyCadenceTracker';
 import QuarterlyDeliverablesTracker from '@/components/retainer/QuarterlyDeliverablesTracker';
@@ -194,6 +195,12 @@ export default function RetainerDetail() {
               )}
             </CardContent>
           </Card>
+
+          <DocumentsPanel
+            record={retainer}
+            recordType="retainer"
+            onSave={(updates) => updateMutation.mutate(updates)}
+          />
 
           {/* Update Status */}
           <Card>

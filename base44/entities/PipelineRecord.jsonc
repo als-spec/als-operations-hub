@@ -151,6 +151,44 @@
           }
         }
       }
+    },
+    "capabilities_deck_url": {
+      "type": "string",
+      "description": "Google Drive URL for capabilities deck"
+    },
+    "capabilities_deck_sent_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "sample_diagnostic_url": {
+      "type": "string",
+      "description": "Google Drive URL for sample diagnostic"
+    },
+    "sample_diagnostic_sent_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "sow_generated_url": {
+      "type": "string",
+      "description": "URL of generated SOW PDF"
+    },
+    "sow_generated_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "sow_signed_url": {
+      "type": "string",
+      "description": "URL of signed SOW PDF"
+    },
+    "sow_signed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "freshbooks_deposit_invoice_url": {
+      "type": "string"
+    },
+    "freshbooks_deposit_invoice_number": {
+      "type": "string"
     }
   },
   "required": [

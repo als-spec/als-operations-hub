@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, ExternalLink, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
+import DocumentsPanel from '@/components/documents/DocumentsPanel';
 
 const STAGES = [
   'Discovery Call Scheduled', 'Discovery Complete', 'Proposal Call Scheduled',
@@ -23,7 +24,7 @@ export default function PipelineDetail() {
   const id = window.location.pathname.split('/').pop();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { isOperator } = useCurrentUser();
+  const { isOperator, isVA } = useCurrentUser();
   const [showBant, setShowBant] = useState(false);
   const [callNote, setCallNote] = useState('');
 
@@ -209,6 +210,13 @@ export default function PipelineDetail() {
               )}
             </CardContent>
           </Card>
+
+          <DocumentsPanel
+            record={record}
+            recordType="pipeline"
+            onSave={(updates) => updateMutation.mutate(updates)}
+            readOnly={isVA}
+          />
 
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Decision Makers</CardTitle></CardHeader>

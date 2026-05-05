@@ -168,6 +168,57 @@
     },
     "internal_notes": {
       "type": "string"
+    },
+    "deposit_paid_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "balance_paid_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "sow_signed_url": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "freshbooks_deposit_invoice_url": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "freshbooks_deposit_invoice_number": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "freshbooks_balance_invoice_url": {
+      "type": "string"
+    },
+    "freshbooks_balance_invoice_number": {
+      "type": "string"
+    },
+    "findings_deck_url": {
+      "type": "string"
+    },
+    "findings_deck_delivered_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "dashboard_url": {
+      "type": "string"
+    },
+    "dashboard_delivered_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "roadmap_url": {
+      "type": "string"
+    },
+    "roadmap_delivered_date": {
+      "type": "string",
+      "format": "date"
     }
   },
   "required": [

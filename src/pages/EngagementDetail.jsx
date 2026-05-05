@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import DocumentsPanel from '@/components/documents/DocumentsPanel';
 
 const DEFAULT_MILESTONES = [
   { type: 'Kickoff Call', completed: false, completed_date: '', notes: '' },
@@ -320,6 +321,12 @@ export default function EngagementDetail() {
               ))}
             </CardContent>
           </Card>
+
+          <DocumentsPanel
+            record={engagement}
+            recordType="engagement"
+            onSave={(updates) => updateMutation.mutate(updates)}
+          />
 
           {/* On-Site Logistics */}
           <Card>

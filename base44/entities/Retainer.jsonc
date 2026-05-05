@@ -181,6 +181,24 @@
     "renewal_notes": {
       "type": "string",
       "description": "Upsell opportunities and scope changes for renewal"
+    },
+    "retainer_agreement_url": {
+      "type": "string",
+      "description": "Uploaded signed retainer agreement"
+    },
+    "retainer_agreement_signed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "freshbooks_client_url": {
+      "type": "string",
+      "description": "Direct link to client in FreshBooks"
+    },
+    "freshbooks_recurring_invoice_url": {
+      "type": "string"
+    },
+    "freshbooks_recurring_invoice_number": {
+      "type": "string"
     }
   },
   "required": [
