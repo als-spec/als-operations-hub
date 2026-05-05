@@ -42,7 +42,8 @@ export default function PipelineDetail() {
   });
 
   const handleStageChange = (stage) => {
-    if (stage === 'Proposal Call Scheduled' && (!record.bant_score || record.bant_score === 0)) {
+    const postDiscoveryStages = ['Proposal Call Scheduled', 'Proposal Presented', 'SOW Sent', 'SOW Signed', 'Deposit Received', 'Active Engagement'];
+    if (postDiscoveryStages.includes(stage) && (!record.bant_score || record.bant_score === 0)) {
       setShowBant(true);
       return;
     }

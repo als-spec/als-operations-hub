@@ -27,6 +27,7 @@ export default function Prospects() {
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('all');
   const [stageFilter, setStageFilter] = useState('all');
+  const [countyFilter, setCountyFilter] = useState('all');
   const [sortField, setSortField] = useState('facility_name');
   const [sortDir, setSortDir] = useState(1);
 
@@ -35,6 +36,11 @@ export default function Prospects() {
     queryFn: () => base44.entities.Prospect.list('-updated_date', 200),
   });
 
+  const counties = useMemo(() => {
+    const all = prospects.map(p => p.county).filter(Boolean);
+    return [...new Set(all)].sort();
+  }, [prospects]);
+
   const filtered = useMemo(() => {
     let result = prospects.filter(p => {
       const matchesSearch = !search ||
@@ -42,7 +48,8 @@ export default function Prospects() {
         p.admin_name?.toLowerCase().includes(search.toLowerCase());
       const matchesTier = tierFilter === 'all' || p.tier === tierFilter;
       const matchesStage = stageFilter === 'all' || p.stage === stageFilter;
-      return matchesSearch && matchesTier && matchesStage;
+      const matchesCounty = countyFilter === 'all' || p.county === countyFilter;
+      return matchesSearch && matchesTier && matchesStage && matchesCounty;
     });
     result.sort((a, b) => {
       const aVal = a[sortField] || '';
@@ -91,6 +98,13 @@ export default function Prospects() {
             {Object.keys(stageColors).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={countyFilter} onValueChange={setCountyFilter}>
+          <SelectTrigger className="w-36 h-9 text-sm"><SelectValue placeholder="County" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Counties</SelectItem>
+            {counties.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -106,6 +120,9 @@ export default function Prospects() {
               <TableHead>Administrator</TableHead>
               <TableHead>Tier</TableHead>
               <TableHead>Stage</TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('last_contact_date')}>
+                <span className="flex items-center gap-1">Last Contact <ArrowUpDown className="w-3 h-3" /></span>
+              </TableHead>
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('next_action_date')}>
                 <span className="flex items-center gap-1">Next Action <ArrowUpDown className="w-3 h-3" /></span>
               </TableHead>
@@ -131,7 +148,10 @@ export default function Prospects() {
                     <Badge variant="secondary" className={`text-[10px] ${stageColors[p.stage] || ''}`}>{p.stage || 'Target'}</Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                   {p.next_action_date ? format(new Date(p.next_action_date), 'MMM d') : '—'}
+                   {p.last_contact_date ? format(new Date(p.last_contact_date), 'MMM d') : '—'}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                  {p.next_action_date ? format(new Date(p.next_action_date), 'MMM d') : '—'}
                   </TableCell>
                   <TableCell>
                    {(() => {

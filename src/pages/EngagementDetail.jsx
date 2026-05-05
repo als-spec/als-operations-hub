@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const DEFAULT_MILESTONES = [
@@ -45,6 +49,9 @@ export default function EngagementDetail() {
   const id = window.location.pathname.split('/').pop();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [noteText, setNoteText] = useState('');
+  const [showGuaranteeForm, setShowGuaranteeForm] = useState(false);
+  const [newGuarantee, setNewGuarantee] = useState({ category: '', stated_amount: '', confidence: 'High', notes: '' });
 
   const { data: engagement, isLoading } = useQuery({
     queryKey: ['engagement', id],
@@ -72,6 +79,36 @@ export default function EngagementDetail() {
   const progress = Math.round((completedMs / milestones.length) * 100);
   const receivedData = dataRequests.filter(d => d.status === 'Received').length;
   const dataProgress = Math.round((receivedData / dataRequests.length) * 100);
+
+  const addNote = () => {
+    if (!noteText.trim()) return;
+    const notes = [...(engagement.internal_notes ? [engagement.internal_notes] : [])];
+    const ts = new Date().toLocaleString();
+    const updated = (engagement.internal_notes || '') + (engagement.internal_notes ? '\n\n' : '') + `[${ts}]\n${noteText}`;
+    updateMutation.mutate({ internal_notes: updated });
+    setNoteText('');
+  };
+
+  const addGuaranteeItem = () => {
+    if (!newGuarantee.category || !newGuarantee.stated_amount) return;
+    const weight = newGuarantee.confidence === 'High' ? 1.0 : 0.5;
+    const item = { ...newGuarantee, stated_amount: Number(newGuarantee.stated_amount), weighted_amount: Number(newGuarantee.stated_amount) * weight };
+    updateMutation.mutate({ guarantee_items: [...guaranteeItems, item] });
+    setNewGuarantee({ category: '', stated_amount: '', confidence: 'High', notes: '' });
+    setShowGuaranteeForm(false);
+  };
+
+  const removeGuaranteeItem = (index) => {
+    updateMutation.mutate({ guarantee_items: guaranteeItems.filter((_, i) => i !== index) });
+  };
+
+  const cycleDeliverableStatus = (index) => {
+    const statuses = ['Not Started', 'In Progress', 'Complete'];
+    const current = statuses.indexOf(deliverables[index].status);
+    const next = statuses[(current + 1) % statuses.length];
+    const updated = deliverables.map((d, i) => i === index ? { ...d, status: next } : d);
+    updateMutation.mutate({ deliverables: updated });
+  };
 
   const toggleMilestone = (index) => {
     const updated = milestones.map((m, i) => i === index ? { ...m, completed: !m.completed, completed_date: !m.completed ? new Date().toISOString().split('T')[0] : '' } : m);
@@ -111,18 +148,20 @@ export default function EngagementDetail() {
         </div>
         <div className="flex items-center gap-2">
           <Badge className={engagement.status === 'Active' ? 'bg-teal/10 text-teal' : 'bg-success/10 text-success'}>{engagement.status}</Badge>
-          <Button size="sm" variant="outline" onClick={() => {
-            const params = new URLSearchParams({
-              facility_name: engagement.facility_name || '',
-              admin_name: engagement.admin_name || '',
-              admin_email: engagement.admin_email || '',
-              engagement_id: engagement.id || '',
-              prospect_id: engagement.prospect_id || '',
-            });
-            window.location.href = `/retainers/new?${params.toString()}`;
-          }}>
-            <RefreshCw className="w-3 h-3 mr-1" /> Convert to Retainer
-          </Button>
+          {engagement.findings_delivered && (
+            <Button size="sm" variant="outline" onClick={() => {
+              const params = new URLSearchParams({
+                facility_name: engagement.facility_name || '',
+                admin_name: engagement.admin_name || '',
+                admin_email: engagement.admin_email || '',
+                engagement_id: engagement.id || '',
+                prospect_id: engagement.prospect_id || '',
+              });
+              window.location.href = `/retainers/new?${params.toString()}`;
+            }}>
+              <RefreshCw className="w-3 h-3 mr-1" /> Convert to Retainer
+            </Button>
+          )}
         </div>
       </div>
 
@@ -176,12 +215,45 @@ export default function EngagementDetail() {
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Shield className="w-4 h-4" /> Guarantee Tracker
                 </CardTitle>
-                <Badge className={guaranteeMet ? 'bg-success/10 text-success' : threshold === 0 ? 'bg-secondary' : 'bg-destructive/10 text-destructive'}>
-                  {threshold === 0 ? 'Pending' : guaranteeMet ? 'Met' : 'Not Met'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className={guaranteeMet ? 'bg-success/10 text-success' : threshold === 0 ? 'bg-secondary' : 'bg-destructive/10 text-destructive'}>
+                    {threshold === 0 ? 'Pending' : guaranteeMet ? 'Met' : 'Not Met'}
+                  </Badge>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setShowGuaranteeForm(v => !v)}>
+                    <Plus className="w-3 h-3 mr-1" />Add Item
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
+              {showGuaranteeForm && (
+                <div className="mb-4 p-3 rounded-md border bg-secondary/30 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Category</Label>
+                      <Input className="mt-1 h-8 text-sm" placeholder="e.g. PPI Variance" value={newGuarantee.category} onChange={e => setNewGuarantee(g => ({ ...g, category: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Stated Amount ($)</Label>
+                      <Input className="mt-1 h-8 text-sm" type="number" placeholder="0" value={newGuarantee.stated_amount} onChange={e => setNewGuarantee(g => ({ ...g, stated_amount: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Confidence</Label>
+                    <Select value={newGuarantee.confidence} onValueChange={v => setNewGuarantee(g => ({ ...g, confidence: v }))}>
+                      <SelectTrigger className="mt-1 h-8 text-sm"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High">High (1.0×)</SelectItem>
+                        <SelectItem value="Medium">Medium (0.5×)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={addGuaranteeItem} className="h-7 text-xs">Add</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setShowGuaranteeForm(false)} className="h-7 text-xs">Cancel</Button>
+                  </div>
+                </div>
+              )}
               {guaranteeItems.length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-4">No guarantee items entered yet</p>
               ) : (
@@ -193,6 +265,7 @@ export default function EngagementDetail() {
                         <span className="text-xs text-muted-foreground">${item.stated_amount?.toLocaleString()}</span>
                         <Badge variant="secondary" className="text-[10px]">{item.confidence}</Badge>
                         <span className="font-medium text-xs">${item.weighted_amount?.toLocaleString()}</span>
+                        <button onClick={() => removeGuaranteeItem(i)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-3 h-3" /></button>
                       </div>
                     </div>
                   ))}
@@ -208,6 +281,22 @@ export default function EngagementDetail() {
               )}
             </CardContent>
           </Card>
+
+          {/* Internal Notes */}
+          <Card>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Internal Notes</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex gap-2 mb-4">
+                <Textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add a timestamped note…" className="text-sm min-h-[60px]" />
+                <Button size="sm" onClick={addNote} disabled={!noteText.trim()} className="self-end">Add</Button>
+              </div>
+              {engagement.internal_notes ? (
+                <pre className="text-xs whitespace-pre-wrap text-muted-foreground bg-secondary/30 rounded-md p-3">{engagement.internal_notes}</pre>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">No notes yet</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right column */}
@@ -219,7 +308,14 @@ export default function EngagementDetail() {
               {deliverables.map((d, i) => (
                 <div key={i} className="flex items-center justify-between p-2 rounded-md bg-secondary/30">
                   <span className="text-sm">{d.name}</span>
-                  <Badge variant="secondary" className="text-[10px]">{d.status}</Badge>
+                  <Badge
+                    className={`text-[10px] cursor-pointer ${
+                      d.status === 'Complete' ? 'bg-success/10 text-success' :
+                      d.status === 'In Progress' ? 'bg-primary/10 text-primary' :
+                      'bg-secondary text-secondary-foreground'
+                    }`}
+                    onClick={() => cycleDeliverableStatus(i)}
+                  >{d.status}</Badge>
                 </div>
               ))}
             </CardContent>

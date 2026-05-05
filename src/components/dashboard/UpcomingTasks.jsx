@@ -12,7 +12,8 @@ export default function UpcomingTasks({ events, pipelineRecords }) {
   events.forEach(e => {
     if (e.status === 'Scheduled' && e.scheduled_date) {
       const d = new Date(e.scheduled_date);
-      if (isBefore(d, weekOut)) {
+      // Include overdue (past) OR within next 7 days
+      if (isBefore(d, now) || isBefore(d, weekOut)) {
         tasks.push({ id: e.id, label: e.title, date: e.scheduled_date, type: 'event', overdue: isBefore(d, now) });
       }
     }
@@ -21,7 +22,8 @@ export default function UpcomingTasks({ events, pipelineRecords }) {
   pipelineRecords.forEach(p => {
     if (p.next_action_date && p.next_action) {
       const d = new Date(p.next_action_date);
-      if (isBefore(d, weekOut)) {
+      // Include overdue (past) OR within next 7 days
+      if (isBefore(d, now) || isBefore(d, weekOut)) {
         tasks.push({ id: p.id, label: `${p.facility_name}: ${p.next_action}`, date: p.next_action_date, type: 'pipeline', overdue: isBefore(d, now) });
       }
     }
@@ -42,12 +44,14 @@ export default function UpcomingTasks({ events, pipelineRecords }) {
           <p className="text-xs text-muted-foreground text-center py-4">All clear for the week</p>
         ) : (
           <div className="space-y-2">
-            {tasks.slice(0, 5).map(task => (
+            {tasks.slice(0, 8).map(task => (
               <div key={task.id} className="flex items-start gap-2 text-xs">
                 <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${task.overdue ? 'bg-destructive' : 'bg-primary'}`} />
                 <div className="flex-1 min-w-0">
                   <p className={`font-medium truncate ${task.overdue ? 'text-destructive' : ''}`}>{task.label}</p>
-                  <p className="text-muted-foreground">{format(new Date(task.date), 'MMM d')}</p>
+                  <p className={`${task.overdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                    {task.overdue ? `Overdue · ${format(new Date(task.date), 'MMM d')}` : format(new Date(task.date), 'MMM d')}
+                  </p>
                 </div>
               </div>
             ))}
