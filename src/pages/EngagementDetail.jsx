@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Calendar, DollarSign, User, MapPin, Shield } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 
 const DEFAULT_MILESTONES = [
@@ -109,7 +109,21 @@ export default function EngagementDetail() {
             </div>
           </div>
         </div>
-        <Badge className={engagement.status === 'Active' ? 'bg-teal/10 text-teal' : 'bg-success/10 text-success'}>{engagement.status}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge className={engagement.status === 'Active' ? 'bg-teal/10 text-teal' : 'bg-success/10 text-success'}>{engagement.status}</Badge>
+          <Button size="sm" variant="outline" onClick={() => {
+            const params = new URLSearchParams({
+              facility_name: engagement.facility_name || '',
+              admin_name: engagement.admin_name || '',
+              admin_email: engagement.admin_email || '',
+              engagement_id: engagement.id || '',
+              prospect_id: engagement.prospect_id || '',
+            });
+            window.location.href = `/retainers/new?${params.toString()}`;
+          }}>
+            <RefreshCw className="w-3 h-3 mr-1" /> Convert to Retainer
+          </Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

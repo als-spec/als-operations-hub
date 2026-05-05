@@ -7,7 +7,8 @@ import ActiveEngagements from '@/components/dashboard/ActiveEngagements';
 import UpcomingTasks from '@/components/dashboard/UpcomingTasks';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Users, Briefcase } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Briefcase, RefreshCw } from 'lucide-react';
+import RetainerAlerts from '@/components/dashboard/RetainerAlerts';
 
 export default function Dashboard() {
   const { user, isFounder } = useCurrentUser();
@@ -31,6 +32,13 @@ export default function Dashboard() {
     queryKey: ['prospects-count'],
     queryFn: () => base44.entities.Prospect.list('-updated_date', 50),
   });
+
+  const { data: retainers = [] } = useQuery({
+    queryKey: ['retainers'],
+    queryFn: () => base44.entities.Retainer.list('-created_date'),
+  });
+
+  const mrr = retainers.filter(r => r.status === 'Active').reduce((s, r) => s + (r.mrr || 0), 0);
 
   const activeEngagements = engagements.filter(e => e.status === 'Active');
   const totalPipelineValue = pipelineRecords
@@ -92,12 +100,12 @@ export default function Dashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">MRR Target</p>
-                  <p className="text-2xl font-bold mt-1">$0</p>
-                  <p className="text-[10px] text-muted-foreground">of $25K target</p>
+                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">MRR</p>
+                  <p className="text-2xl font-bold mt-1">${mrr.toLocaleString()}</p>
+                  <p className="text-[10px] text-muted-foreground">{Math.round((mrr / 25000) * 100)}% of $25K target</p>
                 </div>
                 <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-warning" />
+                  <RefreshCw className="w-4 h-4 text-warning" />
                 </div>
               </div>
             </CardContent>
@@ -113,6 +121,7 @@ export default function Dashboard() {
         </div>
         <div className="space-y-6">
           <PipelineSnapshot records={pipelineRecords} />
+          <RetainerAlerts retainers={retainers} />
           <UpcomingTasks events={events} pipelineRecords={pipelineRecords} />
         </div>
       </div>

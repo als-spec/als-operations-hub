@@ -12,9 +12,20 @@ import { ArrowLeft } from 'lucide-react';
 export default function RetainerForm() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+
+  const params = new URLSearchParams(window.location.search);
+  const prefill = {
+    facility_name: params.get('facility_name') || '',
+    admin_name: params.get('admin_name') || '',
+    admin_email: params.get('admin_email') || '',
+    engagement_id: params.get('engagement_id') || '',
+    prospect_id: params.get('prospect_id') || '',
+  };
+  const isConversion = !!prefill.engagement_id;
+
   const [form, setForm] = useState({
-    facility_name: '', admin_name: '', admin_email: '',
-    mrr: '', start_date: '', renewal_date: '', next_qbr_date: '',
+    ...prefill,
+    mrr: '', start_date: new Date().toISOString().split('T')[0], renewal_date: '', next_qbr_date: '',
     status: 'Active', health_score: 'Green', notes: '',
   });
 
@@ -36,7 +47,7 @@ export default function RetainerForm() {
         <Button variant="ghost" size="icon" onClick={() => navigate('/retainers')}><ArrowLeft className="w-4 h-4" /></Button>
         <div>
           <h1 className="text-2xl font-bold">New Retainer</h1>
-          <p className="text-sm text-muted-foreground">Add a post-engagement recurring client</p>
+          <p className="text-sm text-muted-foreground">{isConversion ? `Converting engagement: ${prefill.facility_name}` : 'Add a post-engagement recurring client'}</p>
         </div>
       </div>
 

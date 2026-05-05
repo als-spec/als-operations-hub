@@ -242,6 +242,15 @@ export default function ProspectDetail() {
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start text-sm" onClick={() => {
                 addActivityMutation.mutate({ prospect_id: prospectId, type: 'outreach', content: 'Outreach logged' });
+                base44.entities.OutreachSequence.create({
+                  prospect_id: prospectId,
+                  facility_name: prospect.facility_name,
+                  channel: 'Email',
+                  sent_date: new Date().toISOString().split('T')[0],
+                  status: 'Sent',
+                  touch_number: 1,
+                });
+                if (prospect.stage === 'Target') handleStageChange('Outreach Sent');
               }}>Log Outreach</Button>
               <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigate(`/schedule/new?prospect_id=${prospectId}&type=Discovery Call`)}>Schedule Call</Button>
               <Button variant="outline" className="w-full justify-start text-sm" onClick={handleMoveToPipeline}>Move to Pipeline</Button>
