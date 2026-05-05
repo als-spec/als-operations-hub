@@ -185,6 +185,35 @@
       "type": "string",
       "format": "date"
     },
+    "sow_signed_by_name": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_by_email": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_ip": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_user_agent": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_sha256": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signature_token_id": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
     "freshbooks_deposit_invoice_url": {
       "type": "string",
       "description": "Carried from pipeline record"

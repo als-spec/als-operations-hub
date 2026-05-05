@@ -184,6 +184,33 @@
       "type": "string",
       "format": "date"
     },
+    "sow_signed_by_name": {
+      "type": "string",
+      "description": "Typed name captured at clickwrap signing time."
+    },
+    "sow_signed_by_email": {
+      "type": "string",
+      "description": "Verified email of the signer (matches PublicAccessToken.recipient_email)."
+    },
+    "sow_signed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Precise ISO timestamp of signing (sow_signed_date is the day-resolution version for display)."
+    },
+    "sow_signed_ip": {
+      "type": "string"
+    },
+    "sow_signed_user_agent": {
+      "type": "string"
+    },
+    "sow_sha256": {
+      "type": "string",
+      "description": "Hash anchoring the signature to the document. Best-effort: sha256 of the SOW PDF bytes if fetchable, otherwise sha256 of the URL string."
+    },
+    "sow_signature_token_id": {
+      "type": "string",
+      "description": "Back-link to the PublicAccessToken consumed by signing, for audit trail."
+    },
     "freshbooks_deposit_invoice_url": {
       "type": "string"
     },
