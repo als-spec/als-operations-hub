@@ -45,10 +45,12 @@ export default function Settings() {
     e.preventDefault();
     if (!inviteEmail) return;
     setInviting(true);
-    await base44.users.inviteUser(inviteEmail, inviteRole);
+    // SDK only accepts "user" or "admin"; custom role is stored on the User entity
+    const sdkRole = (inviteRole === 'founder' || inviteRole === 'admin') ? 'admin' : 'user';
+    await base44.users.inviteUser(inviteEmail, sdkRole);
     setInviting(false);
     setInviteEmail('');
-    toast({ title: 'Invitation sent', description: `${inviteEmail} has been invited as ${ROLE_LABELS[inviteRole]}.` });
+    toast({ title: 'Invitation sent', description: `${inviteEmail} has been invited as ${ROLE_LABELS[inviteRole]}. Their role can be updated once they accept.` });
     queryClient.invalidateQueries({ queryKey: ['users'] });
   };
 
