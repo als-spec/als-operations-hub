@@ -1,9 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'hello@alsoperations.com';
-const FROM_NAME = Deno.env.get('FROM_NAME') || 'ALS Professional Network';
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -16,23 +12,41 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'to_address, subject, and body are required' }, { status: 400 });
     }
 
-    // Send via Resend
-    let resendResult = null;
-    if (RESEND_API_KEY) {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: `${FROM_NAME} <${FROM_EMAIL}>`,
-          to: [to_name ? `${to_name} <${to_address}>` : to_address],
-          subject,
-          html: body.replace(/\n/g, '<br>'),
-        }),
-      });
-      resendResult = await res.json();
-      if (!res.ok) {
-        return Response.json({ error: 'Email delivery failed', details: resendResult }, { status: 502 });
-      }
+    // Get Gmail access token
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection('gmail');
+
+    // Build RFC 2822 message
+    const toHeader = to_name ? `${to_name} <${to_address}>` : to_address;
+    const htmlBody = body.replace(/\n/g, '<br>');
+
+    const mimeMessage = [
+      `To: ${toHeader}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=UTF-8',
+      '',
+      htmlBody,
+    ].join('\r\n');
+
+    // Base64url encode
+    const encoded = btoa(unescape(encodeURIComponent(mimeMessage)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    // Send via Gmail API
+    const gmailRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw: encoded }),
+    });
+
+    const gmailData = await gmailRes.json();
+    if (!gmailRes.ok) {
+      return Response.json({ error: 'Gmail send failed', details: gmailData }, { status: 502 });
     }
 
     // Log the sent email
@@ -50,7 +64,7 @@ Deno.serve(async (req) => {
       replied: false,
     });
 
-    return Response.json({ success: true, email_id: emailLog.id, resend_id: resendResult?.id });
+    return Response.json({ success: true, email_id: emailLog.id, gmail_id: gmailData.id });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
