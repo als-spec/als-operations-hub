@@ -1,0 +1,97 @@
+{
+  "name": "Prospect",
+  "type": "object",
+  "properties": {
+    "facility_name": {
+      "type": "string",
+      "description": "Name of the ASC facility"
+    },
+    "address": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "drive_time_woodstock": {
+      "type": "string",
+      "description": "Drive time from Woodstock"
+    },
+    "or_count": {
+      "type": "number",
+      "description": "Number of operating rooms"
+    },
+    "specialty_focus": {
+      "type": "string"
+    },
+    "admin_name": {
+      "type": "string",
+      "description": "Administrator name"
+    },
+    "admin_email": {
+      "type": "string"
+    },
+    "admin_phone": {
+      "type": "string"
+    },
+    "admin_linkedin": {
+      "type": "string"
+    },
+    "physician_owners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gpo_affiliation": {
+      "type": "string"
+    },
+    "estimated_supply_spend": {
+      "type": "number"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "default": "C"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Target",
+        "Outreach Sent",
+        "Replied",
+        "Discovery Call Scheduled",
+        "In Pipeline",
+        "Stale 90-Day",
+        "Stale 6-Month",
+        "Disqualified"
+      ],
+      "default": "Target"
+    },
+    "last_contact_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_action_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "facility_name"
+  ]
+}

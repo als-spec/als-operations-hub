@@ -1,0 +1,33 @@
+{
+  "name": "ProspectActivity",
+  "type": "object",
+  "properties": {
+    "prospect_id": {
+      "type": "string",
+      "description": "Linked prospect ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "outreach",
+        "call",
+        "email",
+        "note",
+        "stage_change"
+      ],
+      "default": "note"
+    },
+    "content": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata like old_stage, new_stage, template used"
+    }
+  },
+  "required": [
+    "prospect_id",
+    "type",
+    "content"
+  ]
+}

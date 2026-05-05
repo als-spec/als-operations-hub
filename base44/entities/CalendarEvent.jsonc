@@ -1,0 +1,91 @@
+{
+  "name": "CalendarEvent",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "Discovery Call",
+        "Proposal Call",
+        "Kickoff Call",
+        "On-Site Walkthrough",
+        "Findings Presentation",
+        "Retainer Review",
+        "QBR",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "title": {
+      "type": "string"
+    },
+    "linked_record_id": {
+      "type": "string"
+    },
+    "linked_record_type": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "pipeline",
+        "engagement",
+        "retainer",
+        ""
+      ]
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "scheduled_time": {
+      "type": "string"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 30
+    },
+    "attendees": {
+      "type": "string",
+      "description": "Comma-separated attendee names"
+    },
+    "call_link": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Scheduled",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Scheduled"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "pre_call_checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title",
+    "type",
+    "scheduled_date"
+  ]
+}

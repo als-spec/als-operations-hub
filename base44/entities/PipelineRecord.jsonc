@@ -1,0 +1,160 @@
+{
+  "name": "PipelineRecord",
+  "type": "object",
+  "properties": {
+    "prospect_id": {
+      "type": "string"
+    },
+    "facility_name": {
+      "type": "string",
+      "description": "Denormalized for display"
+    },
+    "admin_name": {
+      "type": "string"
+    },
+    "bant_budget": {
+      "type": "string",
+      "enum": [
+        "Pass",
+        "Conditional",
+        "Fail",
+        ""
+      ],
+      "default": ""
+    },
+    "bant_budget_notes": {
+      "type": "string"
+    },
+    "bant_authority": {
+      "type": "string",
+      "enum": [
+        "Pass",
+        "Conditional",
+        "Fail",
+        ""
+      ],
+      "default": ""
+    },
+    "bant_authority_notes": {
+      "type": "string"
+    },
+    "bant_need": {
+      "type": "string",
+      "enum": [
+        "Pass",
+        "Conditional",
+        "Fail",
+        ""
+      ],
+      "default": ""
+    },
+    "bant_need_notes": {
+      "type": "string"
+    },
+    "bant_timeline": {
+      "type": "string",
+      "enum": [
+        "Pass",
+        "Conditional",
+        "Fail",
+        ""
+      ],
+      "default": ""
+    },
+    "bant_timeline_notes": {
+      "type": "string"
+    },
+    "bant_score": {
+      "type": "number",
+      "default": 0
+    },
+    "verbatim_pain_point": {
+      "type": "string"
+    },
+    "decision_makers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "proposed_fee": {
+      "type": "number"
+    },
+    "proposed_kickoff_window": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Discovery Call Scheduled",
+        "Discovery Complete",
+        "Proposal Call Scheduled",
+        "Proposal Presented",
+        "SOW Sent",
+        "SOW Signed",
+        "Deposit Received",
+        "Active Engagement"
+      ],
+      "default": "Discovery Call Scheduled"
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "next_action": {
+      "type": "string"
+    },
+    "next_action_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "call_notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "stage_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "changed_by": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "prospect_id",
+    "facility_name"
+  ]
+}
