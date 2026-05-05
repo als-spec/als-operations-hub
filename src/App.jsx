@@ -30,6 +30,7 @@ import Documents from '@/pages/Documents';
 import Settings from '@/pages/Settings';
 import ClientPortal from '@/pages/ClientPortal';
 import RetainerPortal from '@/pages/RetainerPortal';
+import SowPublicView from '@/pages/SowPublicView';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="/portal/:token" element={<ClientPortal />} />
       <Route path="/retainer-portal/:token" element={<RetainerPortal />} />
+      <Route path="/sow/:token" element={<SowPublicView />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

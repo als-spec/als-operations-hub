@@ -66,16 +66,14 @@ export default function ClientPortal() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center space-y-4">
-            <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
-            <div>
-              <p className="font-medium text-sm mb-1">{error || 'Portal not found'}</p>
-              <p className="text-xs text-muted-foreground mb-4">Questions? Contact us at support@alsprofessional.com or (555) 123-4567</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow p-8 text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+          <div>
+            <p className="font-medium text-sm mb-2">{error || 'Portal not found'}</p>
+            <p className="text-xs text-gray-600">Questions? Contact us at support@alsprofessional.com or (555) 123-4567</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -90,136 +88,131 @@ export default function ClientPortal() {
   const deliverables = (data.deliverables || []).filter(d => d.status === 'Complete');
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto p-6 space-y-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto p-6 space-y-8" style={{ fontFamily: 'Inter, sans-serif' }}>
         {/* Header */}
         <div className="flex justify-between items-baseline border-b pb-4">
-          <p className="text-xs text-muted-foreground">ALS Professional Network</p>
-          <p className="text-xs text-muted-foreground">{data.facility_name}</p>
+          <p className="text-xs text-gray-600">{data.practice_name || 'ALS Professional Services'}</p>
+          <p className="text-xs text-gray-600">{data.facility_name}</p>
         </div>
 
         {/* Welcome Statement */}
         <div>
-          <p className="text-sm text-muted-foreground mb-2">Status Update</p>
-          <p className="text-base font-medium text-foreground">{welcomeText}</p>
+          <p className="text-sm text-gray-600 mb-2">Status Update</p>
+          <p className="text-base font-medium text-gray-900">{welcomeText}</p>
         </div>
 
         {/* Progress Tracker */}
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Progress Timeline</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.milestones?.map((m, i) => {
-                const isCompleted = m.completed;
-                const isInProgress = !isCompleted && data.milestones.slice(0, i).every(x => x.completed);
-                const label = MILESTONE_LABELS[i] || m.type;
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Progress Timeline</h3>
+          <div className="space-y-3">
+            {data.milestones?.map((m, i) => {
+              const isCompleted = m.completed;
+              const isInProgress = !isCompleted && data.milestones.slice(0, i).every(x => x.completed);
+              const label = MILESTONE_LABELS[i] || m.type;
 
-                return (
-                  <div key={i} className="flex items-center gap-3">
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-teal flex-shrink-0" />
-                    ) : isInProgress ? (
-                      <Circle className="w-5 h-5 text-teal animate-pulse flex-shrink-0" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-muted flex-shrink-0" />
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: '#1DE9B6' }} />
+                  ) : isInProgress ? (
+                    <Circle className="w-5 h-5 animate-pulse flex-shrink-0" style={{ color: '#1DE9B6' }} />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{label}</p>
+                    {isCompleted && m.completed_date && (
+                      <p className="text-xs text-gray-600">Completed {format(new Date(m.completed_date), 'MMM d')}</p>
                     )}
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{label}</p>
-                      {isCompleted && m.completed_date && (
-                        <p className="text-xs text-muted-foreground">Completed {format(new Date(m.completed_date), 'MMM d')}</p>
-                      )}
-                      {isInProgress && <p className="text-xs text-teal">In progress</p>}
-                    </div>
+                    {isInProgress && <p className="text-xs" style={{ color: '#1DE9B6' }}>In progress</p>}
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Data Request Status — only show if analysis not complete */}
         {data.milestones && !data.milestones[3]?.completed && (
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Data Request Status</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Data Request Status</h3>
+            <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-muted-foreground">{dataReceivedCount} of {totalDataItems} items received</p>
+                  <p className="text-xs text-gray-600">{dataReceivedCount} of {totalDataItems} items received</p>
                 </div>
                 <Progress value={totalDataItems > 0 ? (dataReceivedCount / totalDataItems) * 100 : 0} className="h-2" />
               </div>
               <div className="space-y-2">
                 {data.data_requests?.map((req, i) => (
                   <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-foreground">{req.item_name}</span>
-                    <Badge variant={req.status === 'Received' ? 'default' : 'secondary'} className="text-xs">
+                    <span className="text-gray-900">{req.item_name}</span>
+                    <div className="text-xs px-2 py-1 rounded" style={{
+                      backgroundColor: req.status === 'Received' ? '#D0FAF1' : '#F0F0F0',
+                      color: req.status === 'Received' ? '#0A7560' : '#666'
+                    }}>
                       {req.status === 'Received' ? '✓ Received' : 'Awaiting'}
-                    </Badge>
+                    </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Key Dates */}
         <div className="grid sm:grid-cols-3 gap-4">
           {data.kickoff_date && (
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Engagement Start</p>
-                <p className="font-medium text-sm">{format(new Date(data.kickoff_date), 'MMM d, yyyy')}</p>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-600 mb-1">Engagement Start</p>
+              <p className="font-medium text-sm text-gray-900">{format(new Date(data.kickoff_date), 'MMM d, yyyy')}</p>
+            </div>
           )}
           {data.on_site_date && (
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Data Deadline</p>
-                <p className="font-medium text-sm">{format(new Date(data.on_site_date), 'MMM d, yyyy')}</p>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-600 mb-1">Data Deadline</p>
+              <p className="font-medium text-sm text-gray-900">{format(new Date(data.on_site_date), 'MMM d, yyyy')}</p>
+            </div>
           )}
           {data.delivery_target && (
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Findings Target</p>
-                <p className="font-medium text-sm">{format(new Date(data.delivery_target), 'MMM d, yyyy')}</p>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-600 mb-1">Findings Target</p>
+              <p className="font-medium text-sm text-gray-900">{format(new Date(data.delivery_target), 'MMM d, yyyy')}</p>
+            </div>
           )}
         </div>
 
         {/* Deliverables — only show when available */}
         {deliverables.length > 0 && (
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Your Deliverables</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Your Deliverables</h3>
+            <div className="space-y-2">
               {data.findings_deck_url && (
-                <a href={data.findings_deck_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-md border border-border hover:bg-secondary transition-colors">
-                  <span className="text-sm font-medium">Findings Report</span>
-                  <Download className="w-4 h-4 text-muted-foreground" />
+                <a href={data.findings_deck_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <span className="text-sm font-medium text-gray-900">Findings Report</span>
+                  <Download className="w-4 h-4 text-gray-600" />
                 </a>
               )}
               {data.dashboard_url && (
-                <a href={data.dashboard_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-md border border-border hover:bg-secondary transition-colors">
-                  <span className="text-sm font-medium">Analytics Dashboard</span>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                <a href={data.dashboard_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <span className="text-sm font-medium text-gray-900">Analytics Dashboard</span>
+                  <ExternalLink className="w-4 h-4 text-gray-600" />
                 </a>
               )}
               {data.roadmap_url && (
-                <a href={data.roadmap_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-md border border-border hover:bg-secondary transition-colors">
-                  <span className="text-sm font-medium">Implementation Roadmap</span>
-                  <Download className="w-4 h-4 text-muted-foreground" />
+                <a href={data.roadmap_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <span className="text-sm font-medium text-gray-900">Implementation Roadmap</span>
+                  <Download className="w-4 h-4 text-gray-600" />
                 </a>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Contact Strip */}
         <div className="border-t pt-6 text-center">
-          <p className="text-xs text-muted-foreground">Questions? Contact us at support@alsprofessional.com or (555) 123-4567</p>
+          <p className="text-xs text-gray-600">Questions? Contact us at support@alsprofessional.com or (555) 123-4567</p>
         </div>
       </div>
     </div>
