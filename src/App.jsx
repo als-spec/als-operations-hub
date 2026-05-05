@@ -32,6 +32,7 @@ import Settings from '@/pages/Settings';
 import ClientPortal from '@/pages/ClientPortal';
 import RetainerPortal from '@/pages/RetainerPortal';
 import SowPublicView from '@/pages/SowPublicView';
+import Dashboard from '@/pages/Dashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,7 +64,7 @@ const AuthenticatedApp = () => {
       
       {/* Internal pages — wrapped with auth guard */}
       <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
-        <Route path="/dashboard" element={<DashboardWithAuth />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/prospects" element={<Prospects />} />
         <Route path="/prospects/new" element={<ProspectForm />} />
         <Route path="/prospects/:id" element={<ProspectDetail />} />

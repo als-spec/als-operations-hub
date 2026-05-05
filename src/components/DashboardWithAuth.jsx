@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import Dashboard from '@/pages/Dashboard';
 
 export default function DashboardWithAuth() {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -18,6 +19,9 @@ export default function DashboardWithAuth() {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         setIsAuthenticated(isAuth);
+        if (isAuth) {
+          navigate('/dashboard');
+        }
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthenticated(false);
@@ -27,7 +31,7 @@ export default function DashboardWithAuth() {
     };
 
     checkAuth();
-  }, []);
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -39,6 +43,7 @@ export default function DashboardWithAuth() {
       setIsAuthenticated(true);
       setEmail('');
       setPassword('');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
@@ -130,5 +135,6 @@ export default function DashboardWithAuth() {
     );
   }
 
-  return <Dashboard />;
+  // This should never render if auth check works; return null
+  return null;
 }
