@@ -1,0 +1,84 @@
+{
+  "name": "PublicAccessToken",
+  "type": "object",
+  "description": "Token granting unauthenticated access to a single resource (SOW review or client portal). Looked up only by service-role from public/* Deno functions.",
+  "properties": {
+    "token": {
+      "type": "string",
+      "description": "Random urlsafe-base64 string, >=256 bits of entropy. NOT the entity id."
+    },
+    "resource_type": {
+      "type": "string",
+      "enum": ["sow", "portal"]
+    },
+    "resource_id": {
+      "type": "string",
+      "description": "PipelineRecord.id for sow tokens; Engagement.id for portal tokens."
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["read", "sign", "upload", "acknowledge"]
+      },
+      "description": "Authorized actions. SOW tokens: [read, sign]. Portal tokens: [read, upload, acknowledge]."
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email the link was issued to. Verified-session cookie email must match this (case-insensitive)."
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "issued_by": {
+      "type": "string",
+      "description": "Operator email who issued the token."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "single_use": {
+      "type": "boolean",
+      "default": false,
+      "description": "True for SOW tokens. When consumed_at is set, further use is denied."
+    },
+    "consumed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set when single_use action completes (e.g. SOW signed)."
+    },
+    "revoked": {
+      "type": "boolean",
+      "default": false
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revoked_by": {
+      "type": "string"
+    },
+    "last_accessed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "access_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "token",
+    "resource_type",
+    "resource_id",
+    "scope",
+    "recipient_email",
+    "issued_at",
+    "expires_at"
+  ]
+}

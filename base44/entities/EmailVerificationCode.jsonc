@@ -1,0 +1,37 @@
+{
+  "name": "EmailVerificationCode",
+  "type": "object",
+  "description": "6-digit code issued during the public-page email verification flow. TTL 15 min; max 5 attempts; max 3 codes per token per hour.",
+  "properties": {
+    "token_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "code_hash": {
+      "type": "string",
+      "description": "sha256 of the 6-digit code. Plaintext code is sent via email and never stored."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "consumed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issuer_ip": {
+      "type": "string"
+    }
+  },
+  "required": ["token_id", "email", "code_hash", "expires_at", "issued_at"]
+}

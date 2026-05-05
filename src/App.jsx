@@ -1,12 +1,14 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppLayout from '@/components/layout/AppLayout';
+import PublicLayout from '@/components/layout/PublicLayout';
+import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
 import Dashboard from '@/pages/Dashboard';
 import Prospects from '@/pages/Prospects';
 import ProspectDetail from '@/pages/ProspectDetail';
@@ -82,16 +84,35 @@ const AuthenticatedApp = () => {
   );
 };
 
-function App() {
+const PublicRoutes = () => (
+  <Routes>
+    <Route element={<PublicLayout />}>
+      <Route path="/p/expired" element={<PublicLinkExpired />} />
+    </Route>
+    <Route path="/p/*" element={<PublicLinkExpired />} />
+  </Routes>
+);
+
+const AppRoutes = () => {
+  const { pathname } = useLocation();
+  if (pathname.startsWith('/p/')) {
+    return <PublicRoutes />;
+  }
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
+      <AuthenticatedApp />
     </AuthProvider>
+  );
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClientInstance}>
+      <Router>
+        <AppRoutes />
+      </Router>
+      <Toaster />
+    </QueryClientProvider>
   )
 }
 
