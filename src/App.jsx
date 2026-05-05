@@ -27,6 +27,7 @@ import Outreach from '@/pages/Outreach';
 import Communications from '@/pages/Communications';
 import ClientEmail from '@/pages/ClientEmail';
 import Documents from '@/pages/Documents';
+import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -74,6 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/communications" element={<Communications />} />
         <Route path="/email" element={<ClientEmail />} />
         <Route path="/documents" element={<Documents />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
