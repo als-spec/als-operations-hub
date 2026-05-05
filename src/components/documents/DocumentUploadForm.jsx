@@ -9,13 +9,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, Loader2 } from 'lucide-react';
 
+const CATEGORIES = [
+  'SOPs & Process Guides',
+  'Email Templates',
+  'Call Scripts',
+  'Client Deliverables',
+  'Internal Working Templates',
+  'Reference',
+];
+
 export default function DocumentUploadForm({ user, onSuccess, onCancel }) {
   const [form, setForm] = useState({
     name: '',
-    category: 'Other',
+    category: 'Reference',
+    version: '',
+    description: '',
+    usage_notes: '',
     linked_record_type: '',
     linked_record_id: '',
     linked_record_name: '',
+    external_link: '',
+    notion_link: '',
+    last_updated_date: '',
     notes: '',
   });
   const [file, setFile] = useState(null);
@@ -43,27 +58,39 @@ export default function DocumentUploadForm({ user, onSuccess, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    let file_url = form.external_link || '';
+    let file_name = '';
+    let file_size_kb = 0;
+
+    if (file) {
+      const res = await base44.integrations.Core.UploadFile({ file });
+      file_url = res.file_url;
+      file_name = file.name;
+      file_size_kb = Math.round(file.size / 1024);
+    }
+
     await base44.entities.Document.create({
       ...form,
       file_url,
-      file_name: file.name,
-      file_size_kb: Math.round(file.size / 1024),
+      file_name,
+      file_size_kb,
       uploaded_by: user?.email || '',
     });
     setUploading(false);
     onSuccess();
   };
 
+  const canSubmit = file || form.external_link || form.notion_link;
+
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Upload Document</CardTitle>
+        <CardTitle className="text-base">Upload / Add Document</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Row 1: Name + Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Document Name *</Label>
@@ -74,11 +101,37 @@ export default function DocumentUploadForm({ user, onSuccess, onCancel }) {
               <Select value={form.category} onValueChange={v => set('category', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {['SOW','Proposal','Report','Contract','Invoice','Presentation','Other'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {/* Row 2: Version + Last Updated */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label>Version</Label>
+              <Input value={form.version} onChange={e => set('version', e.target.value)} placeholder="e.g. v1.0" />
+            </div>
+            <div className="space-y-1">
+              <Label>Last Updated Date</Label>
+              <Input type="date" value={form.last_updated_date} onChange={e => set('last_updated_date', e.target.value)} />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1">
+            <Label>Description</Label>
+            <Textarea rows={2} value={form.description} onChange={e => set('description', e.target.value)} placeholder="1-2 sentence description of what this document is..." />
+          </div>
+
+          {/* Usage Notes */}
+          <div className="space-y-1">
+            <Label>Usage Notes</Label>
+            <Textarea rows={2} value={form.usage_notes} onChange={e => set('usage_notes', e.target.value)} placeholder="When and how to use this document..." />
+          </div>
+
+          {/* Row: Link to Record */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Link To (optional)</Label>
@@ -108,18 +161,39 @@ export default function DocumentUploadForm({ user, onSuccess, onCancel }) {
               </div>
             )}
           </div>
+
+          {/* File Upload */}
           <div className="space-y-1">
-            <Label>File *</Label>
-            <Input type="file" required onChange={handleFileChange} />
+            <Label>File Upload</Label>
+            <Input type="file" onChange={handleFileChange} />
           </div>
+
+          {/* External Links */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label>Google Drive Link</Label>
+              <Input value={form.external_link} onChange={e => set('external_link', e.target.value)} placeholder="https://drive.google.com/..." />
+            </div>
+            <div className="space-y-1">
+              <Label>Notion Link</Label>
+              <Input value={form.notion_link} onChange={e => set('notion_link', e.target.value)} placeholder="https://notion.so/..." />
+            </div>
+          </div>
+
+          {/* Notes */}
           <div className="space-y-1">
-            <Label>Notes</Label>
-            <Textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Optional notes..." />
+            <Label>Additional Notes</Label>
+            <Textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Optional additional notes..." />
           </div>
+
+          {!canSubmit && (
+            <p className="text-xs text-muted-foreground">Please upload a file or provide a Google Drive or Notion link.</p>
+          )}
+
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-            <Button type="submit" disabled={uploading || !file} className="gap-2">
-              {uploading ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading…</> : <><Upload className="w-4 h-4" />Upload</>}
+            <Button type="submit" disabled={uploading || !canSubmit || !form.name} className="gap-2">
+              {uploading ? <><Loader2 className="w-4 h-4 animate-spin" />Saving…</> : <><Upload className="w-4 h-4" />Save Document</>}
             </Button>
           </div>
         </form>

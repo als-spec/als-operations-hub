@@ -9,15 +9,26 @@
     "category": {
       "type": "string",
       "enum": [
-        "SOW",
-        "Proposal",
-        "Report",
-        "Contract",
-        "Invoice",
-        "Presentation",
-        "Other"
+        "SOPs & Process Guides",
+        "Email Templates",
+        "Call Scripts",
+        "Client Deliverables",
+        "Internal Working Templates",
+        "Reference"
       ],
-      "default": "Other"
+      "default": "Reference"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version number (e.g. v1.0, v2.3)"
+    },
+    "description": {
+      "type": "string",
+      "description": "1-2 sentence description of the document"
+    },
+    "usage_notes": {
+      "type": "string",
+      "description": "When and how to use this document"
     },
     "linked_record_id": {
       "type": "string"
@@ -44,6 +55,19 @@
     "file_size_kb": {
       "type": "number"
     },
+    "external_link": {
+      "type": "string",
+      "description": "Google Drive or other external link"
+    },
+    "notion_link": {
+      "type": "string",
+      "description": "Notion page link"
+    },
+    "last_updated_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date document was last updated"
+    },
     "notes": {
       "type": "string"
     },
@@ -53,7 +77,6 @@
   },
   "required": [
     "name",
-    "category",
-    "file_url"
+    "category"
   ]
 }
