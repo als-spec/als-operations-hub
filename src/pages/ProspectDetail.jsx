@@ -15,6 +15,33 @@ import { useCurrentUser } from '@/lib/useCurrentUser';
 const stages = ['Target', 'Outreach Sent', 'Replied', 'Discovery Call Scheduled', 'In Pipeline', 'Stale 90-Day', 'Stale 6-Month', 'Disqualified'];
 const tierColors = { A: 'bg-teal text-navy', B: 'bg-primary text-white', C: 'bg-secondary text-secondary-foreground' };
 
+// Inline editor that holds its own value locally and only commits to the
+// server on blur — and only when the value actually changed. Replaces the
+// previous pattern of firing updateMutation on every keystroke (which
+// invalidated and re-fetched the record mid-typing, producing visible lag and
+// occasional dropped characters).
+//
+// `field` is the entity key being edited; `recordId` becomes the React `key`
+// so the underlying input remounts with a fresh defaultValue when the parent
+// loads a different record.
+function EditableField({ recordId, field, initialValue, onSave, parse, ...inputProps }) {
+  const handleBlur = (e) => {
+    const raw = e.target.value;
+    const next = parse ? parse(raw) : raw;
+    const prev = parse ? parse(initialValue ?? '') : (initialValue ?? '');
+    if (next === prev) return;
+    onSave(field, next);
+  };
+  return (
+    <Input
+      key={`${recordId}-${field}`}
+      defaultValue={initialValue ?? ''}
+      onBlur={handleBlur}
+      {...inputProps}
+    />
+  );
+}
+
 export default function ProspectDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const prospectId = window.location.pathname.split('/').pop();
@@ -68,6 +95,11 @@ export default function ProspectDetail() {
 
   const handleTierChange = (tier) => {
     updateMutation.mutate({ id: prospectId, data: { tier } });
+  };
+
+  // Single shared blur handler for all EditableField instances on this page.
+  const handleFieldSave = (field, value) => {
+    updateMutation.mutate({ id: prospectId, data: { [field]: value } });
   };
 
   const handleAddNote = () => {
@@ -146,36 +178,44 @@ export default function ProspectDetail() {
              <CardContent className="grid sm:grid-cols-2 gap-4 text-sm">
                <div>
                  <p className="text-xs text-muted-foreground">Administrator</p>
-                 <Input
-                   value={prospect.admin_name || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_name: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="admin_name"
+                   initialValue={prospect.admin_name}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="Name"
                  />
                </div>
                <div>
                  <p className="text-xs text-muted-foreground">Email</p>
-                 <Input
-                   value={prospect.admin_email || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_email: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="admin_email"
+                   initialValue={prospect.admin_email}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="Email"
                  />
                </div>
                <div>
                  <p className="text-xs text-muted-foreground">Phone</p>
-                 <Input
-                   value={prospect.admin_phone || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_phone: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="admin_phone"
+                   initialValue={prospect.admin_phone}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="Phone"
                  />
                </div>
                <div>
                  <p className="text-xs text-muted-foreground">LinkedIn</p>
-                 <Input
-                   value={prospect.admin_linkedin || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_linkedin: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="admin_linkedin"
+                   initialValue={prospect.admin_linkedin}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="LinkedIn URL"
                  />
@@ -191,47 +231,59 @@ export default function ProspectDetail() {
              <CardContent className="grid sm:grid-cols-3 gap-4 text-sm">
                <div>
                  <p className="text-xs text-muted-foreground">Operating Rooms</p>
-                 <Input
+                 <EditableField
+                   recordId={prospect.id}
+                   field="or_count"
+                   initialValue={prospect.or_count}
+                   onSave={handleFieldSave}
+                   parse={(v) => parseInt(v, 10) || null}
                    type="number"
-                   value={prospect.or_count || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { or_count: parseInt(e.target.value) || null } })}
                    className="text-sm mt-1"
                    placeholder="Count"
                  />
                </div>
                <div>
                  <p className="text-xs text-muted-foreground">Specialty Focus</p>
-                 <Input
-                   value={prospect.specialty_focus || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { specialty_focus: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="specialty_focus"
+                   initialValue={prospect.specialty_focus}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="Specialty"
                  />
                </div>
                <div>
                  <p className="text-xs text-muted-foreground">Est. Supply Spend</p>
-                 <Input
+                 <EditableField
+                   recordId={prospect.id}
+                   field="estimated_supply_spend"
+                   initialValue={prospect.estimated_supply_spend}
+                   onSave={handleFieldSave}
+                   parse={(v) => parseInt(v, 10) || null}
                    type="number"
-                   value={prospect.estimated_supply_spend || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { estimated_supply_spend: parseInt(e.target.value) || null } })}
                    className="text-sm mt-1"
                    placeholder="Amount"
                  />
                </div>
                <div>
                  <p className="text-xs text-muted-foreground">GPO Affiliation</p>
-                 <Input
-                   value={prospect.gpo_affiliation || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { gpo_affiliation: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="gpo_affiliation"
+                   initialValue={prospect.gpo_affiliation}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="GPO"
                  />
                </div>
                <div className="sm:col-span-2">
                  <p className="text-xs text-muted-foreground">County</p>
-                 <Input
-                   value={prospect.county || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { county: e.target.value } })}
+                 <EditableField
+                   recordId={prospect.id}
+                   field="county"
+                   initialValue={prospect.county}
+                   onSave={handleFieldSave}
                    className="text-sm mt-1"
                    placeholder="County"
                  />
