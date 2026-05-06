@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -8,12 +8,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Phone, Mail, Linkedin, Clock, Plus, ExternalLink, Send } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Mail, Linkedin, Clock, Plus, ExternalLink, Send, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
 const stages = ['Target', 'Outreach Sent', 'Replied', 'Discovery Call Scheduled', 'In Pipeline', 'Stale 90-Day', 'Stale 6-Month', 'Disqualified'];
 const tierColors = { A: 'bg-teal text-navy', B: 'bg-primary text-white', C: 'bg-secondary text-secondary-foreground' };
+
+const EDITABLE_FIELDS = [
+  'admin_name', 'admin_email', 'admin_phone', 'admin_linkedin',
+  'or_count', 'specialty_focus', 'estimated_supply_spend', 'gpo_affiliation', 'county',
+];
+
+const pickEditable = (p) => EDITABLE_FIELDS.reduce((acc, k) => {
+  acc[k] = p?.[k] ?? '';
+  return acc;
+}, {});
 
 export default function ProspectDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -22,6 +32,7 @@ export default function ProspectDetail() {
   const qc = useQueryClient();
   const { user } = useCurrentUser();
   const [noteText, setNoteText] = useState('');
+  const [formData, setFormData] = useState(pickEditable(null));
 
   const { data: prospect, isLoading } = useQuery({
     queryKey: ['prospect', prospectId],
@@ -48,6 +59,40 @@ export default function ProspectDetail() {
     mutationFn: ({ id, data }) => base44.entities.Prospect.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['prospect', prospectId] }),
   });
+
+  useEffect(() => {
+    if (prospect) setFormData(pickEditable(prospect));
+  }, [prospect]);
+
+  const isDirty = useMemo(() => {
+    if (!prospect) return false;
+    const baseline = pickEditable(prospect);
+    return EDITABLE_FIELDS.some(k => String(formData[k] ?? '') !== String(baseline[k] ?? ''));
+  }, [formData, prospect]);
+
+  const handleFieldChange = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = () => {
+    if (!isDirty) return;
+    const payload = {};
+    EDITABLE_FIELDS.forEach(k => {
+      let val = formData[k];
+      if (k === 'or_count' || k === 'estimated_supply_spend') {
+        val = val === '' || val === null || val === undefined ? null : parseInt(val, 10);
+        if (Number.isNaN(val)) val = null;
+      } else if (val === '') {
+        val = null;
+      }
+      payload[k] = val;
+    });
+    updateMutation.mutate({ id: prospectId, data: payload });
+  };
+
+  const handleCancel = () => {
+    setFormData(pickEditable(prospect));
+  };
 
   const addActivityMutation = useMutation({
     mutationFn: (data) => base44.entities.ProspectActivity.create(data),
@@ -135,6 +180,20 @@ export default function ProspectDetail() {
         </div>
       </div>
 
+      {isDirty && (
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-2 rounded-md border border-primary/30 bg-primary/5 shadow-sm">
+          <p className="text-sm text-foreground">You have unsaved changes</p>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleCancel} disabled={updateMutation.isPending}>
+              <X className="w-4 h-4 mr-1" /> Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending}>
+              <Save className="w-4 h-4 mr-1" /> {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left column */}
         <div className="lg:col-span-2 space-y-6">
@@ -147,8 +206,8 @@ export default function ProspectDetail() {
                <div>
                  <p className="text-xs text-muted-foreground">Administrator</p>
                  <Input
-                   value={prospect.admin_name || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_name: e.target.value } })}
+                   value={formData.admin_name ?? ''}
+                   onChange={(e) => handleFieldChange('admin_name', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="Name"
                  />
@@ -156,8 +215,8 @@ export default function ProspectDetail() {
                <div>
                  <p className="text-xs text-muted-foreground">Email</p>
                  <Input
-                   value={prospect.admin_email || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_email: e.target.value } })}
+                   value={formData.admin_email ?? ''}
+                   onChange={(e) => handleFieldChange('admin_email', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="Email"
                  />
@@ -165,8 +224,8 @@ export default function ProspectDetail() {
                <div>
                  <p className="text-xs text-muted-foreground">Phone</p>
                  <Input
-                   value={prospect.admin_phone || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_phone: e.target.value } })}
+                   value={formData.admin_phone ?? ''}
+                   onChange={(e) => handleFieldChange('admin_phone', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="Phone"
                  />
@@ -174,8 +233,8 @@ export default function ProspectDetail() {
                <div>
                  <p className="text-xs text-muted-foreground">LinkedIn</p>
                  <Input
-                   value={prospect.admin_linkedin || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { admin_linkedin: e.target.value } })}
+                   value={formData.admin_linkedin ?? ''}
+                   onChange={(e) => handleFieldChange('admin_linkedin', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="LinkedIn URL"
                  />
@@ -193,8 +252,8 @@ export default function ProspectDetail() {
                  <p className="text-xs text-muted-foreground">Operating Rooms</p>
                  <Input
                    type="number"
-                   value={prospect.or_count || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { or_count: parseInt(e.target.value) || null } })}
+                   value={formData.or_count ?? ''}
+                   onChange={(e) => handleFieldChange('or_count', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="Count"
                  />
@@ -202,8 +261,8 @@ export default function ProspectDetail() {
                <div>
                  <p className="text-xs text-muted-foreground">Specialty Focus</p>
                  <Input
-                   value={prospect.specialty_focus || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { specialty_focus: e.target.value } })}
+                   value={formData.specialty_focus ?? ''}
+                   onChange={(e) => handleFieldChange('specialty_focus', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="Specialty"
                  />
@@ -212,8 +271,8 @@ export default function ProspectDetail() {
                  <p className="text-xs text-muted-foreground">Est. Supply Spend</p>
                  <Input
                    type="number"
-                   value={prospect.estimated_supply_spend || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { estimated_supply_spend: parseInt(e.target.value) || null } })}
+                   value={formData.estimated_supply_spend ?? ''}
+                   onChange={(e) => handleFieldChange('estimated_supply_spend', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="Amount"
                  />
@@ -221,8 +280,8 @@ export default function ProspectDetail() {
                <div>
                  <p className="text-xs text-muted-foreground">GPO Affiliation</p>
                  <Input
-                   value={prospect.gpo_affiliation || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { gpo_affiliation: e.target.value } })}
+                   value={formData.gpo_affiliation ?? ''}
+                   onChange={(e) => handleFieldChange('gpo_affiliation', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="GPO"
                  />
@@ -230,8 +289,8 @@ export default function ProspectDetail() {
                <div className="sm:col-span-2">
                  <p className="text-xs text-muted-foreground">County</p>
                  <Input
-                   value={prospect.county || ''}
-                   onChange={(e) => updateMutation.mutate({ id: prospectId, data: { county: e.target.value } })}
+                   value={formData.county ?? ''}
+                   onChange={(e) => handleFieldChange('county', e.target.value)}
                    className="text-sm mt-1"
                    placeholder="County"
                  />
