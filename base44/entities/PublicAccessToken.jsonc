@@ -5,7 +5,11 @@
   "properties": {
     "token": {
       "type": "string",
-      "description": "Random urlsafe-base64 string, >=256 bits of entropy. NOT the entity id."
+      "description": "Random urlsafe-base64 string, >=256 bits of entropy. NOT the entity id. Should be marked service-role-read-only via platform RLS so the operator UI cannot retrieve raw tokens after issuance."
+    },
+    "public_url": {
+      "type": "string",
+      "description": "Relative URL containing the token (e.g. /p/sow/<token>). Set at issuance. Lets the operator UI reconstruct the copy URL without reading the token field."
     },
     "resource_type": {
       "type": "string",

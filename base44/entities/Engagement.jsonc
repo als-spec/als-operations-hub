@@ -214,6 +214,10 @@
       "type": "string",
       "description": "Carried from pipeline record"
     },
+    "sow_signature_receipt_url": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
     "freshbooks_deposit_invoice_url": {
       "type": "string",
       "description": "Carried from pipeline record"

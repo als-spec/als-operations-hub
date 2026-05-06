@@ -80,7 +80,7 @@ export default function PublicLinkPanel({
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey });
       if (data?.public_path) {
-        setLatestIssued({ token_id: data.token_id, full_url: buildPublicUrl(data.public_path) });
+        setLatestIssued({ token_id: data.token_id, full_url: buildPublicUrl(data.public_url || data.public_path) });
       }
       setShowDialog(false);
     },
@@ -167,7 +167,7 @@ export default function PublicLinkPanel({
                   <TokenRow
                     key={t.id}
                     token={t}
-                    onCopy={buildPublicUrl(`/p/${t.resource_type}/${t.token}`)}
+                    onCopy={buildPublicUrl(t.public_url || `/p/${t.resource_type}/${t.token}`)}
                     onRevoke={() => setRevokingId(t.id)}
                   />
                 ))}

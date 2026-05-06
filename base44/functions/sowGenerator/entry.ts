@@ -34,6 +34,15 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Refuse to regenerate after a signature exists. The sow_sha256 audit
+    // field anchors the document the recipient agreed to; overwriting the
+    // SOW now would silently desync the audit trail from the signed bytes.
+    if (pipeline.sow_signed_at) {
+      return Response.json({
+        error: "This SOW has already been signed. Regeneration is locked to preserve the audit trail."
+      }, { status: 409 });
+    }
+
     const prospects = await base44.asServiceRole.entities.Prospect.filter({
       id: pipeline.prospect_id
     });

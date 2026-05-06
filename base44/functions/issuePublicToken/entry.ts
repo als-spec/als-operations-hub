@@ -78,8 +78,10 @@ Deno.serve(async (req) => {
     }
 
     const token = generateToken();
+    const public_url = `/p/${resource_type}/${token}`;
     const created = await base44.entities.PublicAccessToken.create({
       token,
+      public_url,
       resource_type,
       resource_id,
       scope,
@@ -93,12 +95,15 @@ Deno.serve(async (req) => {
       access_count: 0,
     });
 
-    // Frontend constructs the absolute URL (it knows the canonical app origin); we return the path.
+    // The frontend prepends its origin to public_url to get the absolute URL.
+    // public_url is also persisted on the entity so the operator panel can
+    // reconstruct copy links on revisit without reading the raw token field.
     return Response.json({
       success: true,
       token_id: created.id,
       token,
-      public_path: `/p/${resource_type}/${token}`,
+      public_url,
+      public_path: public_url,
       expires_at,
       scope,
       single_use,
