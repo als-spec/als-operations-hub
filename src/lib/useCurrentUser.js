@@ -1,21 +1,19 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+
+// Reads the authenticated user from AuthContext rather than firing its own
+// auth.me() call. Originally this hook hit the SDK from every component that
+// used it (11+ sites pre-merge, 13+ post-merge), producing an N+1 fan-out on
+// every page load. Now it's a thin selector over the shared context.
 
 export function useCurrentUser() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoadingAuth } = useAuth();
 
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
-
-  const isFounder = user?.role === 'founder' || user?.role === 'admin';
-  const isOperator = user?.role === 'operator';
-  const isVA = user?.role === 'va';
-  const isAnalyst = user?.role === 'analyst';
-
-  return { user, loading, isFounder, isOperator, isVA, isAnalyst };
+  return {
+    user,
+    loading: isLoadingAuth,
+    isFounder: user?.role === 'founder' || user?.role === 'admin',
+    isOperator: user?.role === 'operator',
+    isVA: user?.role === 'va',
+    isAnalyst: user?.role === 'analyst',
+  };
 }

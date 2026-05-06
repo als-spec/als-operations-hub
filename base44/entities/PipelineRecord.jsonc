@@ -211,6 +211,10 @@
       "type": "string",
       "description": "Back-link to the PublicAccessToken consumed by signing, for audit trail."
     },
+    "sow_signature_receipt_url": {
+      "type": "string",
+      "description": "URL of the auto-generated one-page signature receipt PDF (clickwrap audit artifact)."
+    },
     "freshbooks_deposit_invoice_url": {
       "type": "string"
     },

@@ -5,6 +5,45 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
  * Resolves auto-fill variables in email templates
  * Trigger: HTTP POST /api/resolve-email-template
  */
+
+// Picks the most recent active PublicAccessToken for the given resource and
+// builds an absolute public URL using PracticeSettings.practice_domain. The
+// React-side EmailComposer already does the equivalent client-side; this
+// resolver covers any path that renders templates via the platform.
+async function getActivePublicUrl(
+  base44: any,
+  resource_type: 'sow' | 'portal',
+  resource_id: string,
+  practice_domain: string,
+): Promise<string> {
+  if (!resource_id) return '';
+  try {
+    const tokens = await base44.asServiceRole.entities.PublicAccessToken.filter({
+      resource_type,
+      resource_id,
+      revoked: false,
+    });
+    const now = Date.now();
+    const candidates = (tokens || [])
+      .filter((t: any) => !t.consumed_at)
+      .filter((t: any) => !t.expires_at || new Date(t.expires_at).getTime() > now)
+      .sort((a: any, b: any) =>
+        new Date(b.issued_at || 0).getTime() - new Date(a.issued_at || 0).getTime(),
+      );
+    const token = candidates[0];
+    if (!token) return '';
+    const path = token.public_url || `/p/${resource_type}/${token.token}`;
+    if (!practice_domain) return path; // Last-resort: relative path.
+    const origin = practice_domain.startsWith('http')
+      ? practice_domain.replace(/\/$/, '')
+      : `https://${practice_domain.replace(/\/$/, '')}`;
+    return `${origin}${path}`;
+  } catch (err) {
+    console.error('getActivePublicUrl failed:', err);
+    return '';
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -22,9 +61,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Template not found" }, { status: 404 });
     }
 
-    const vars = {};
+    const vars: Record<string, string> = {};
 
-    // Fetch practice settings
+    // Fetch practice settings (also yields the domain for public URLs).
+    let practice_domain = '';
     const settings = await base44.asServiceRole.entities.PracticeSettings.filter({});
     if (settings?.[0]) {
       const s = settings[0];
@@ -36,6 +76,7 @@ Deno.serve(async (req) => {
       vars["CALENDAR_LINK"] = s.calendar_link || "";
       vars["OPERATOR_EMAIL"] = s.operator_email || "";
       vars["OPERATOR_PHONE"] = s.operator_phone || "";
+      practice_domain = s.practice_domain || '';
     }
 
     let prospectId = null;
@@ -67,6 +108,8 @@ Deno.serve(async (req) => {
         vars["FEE"] = p.proposed_fee ? `$${p.proposed_fee.toLocaleString()}` : "";
         vars["DEPOSIT_AMOUNT"] = p.deposit_amount ? `$${p.deposit_amount.toLocaleString()}` : "";
         vars["INVOICE_NUMBER"] = p.freshbooks_deposit_invoice_number || "";
+        // SOW review link: pull the most recent active sow-scoped token for this pipeline record.
+        vars["SOW_REVIEW_LINK"] = await getActivePublicUrl(base44, 'sow', linked_record_id, practice_domain);
       }
     }
 
@@ -81,16 +124,21 @@ Deno.serve(async (req) => {
         vars["KICKOFF_DATE"] = e.kickoff_date || "";
         vars["DELIVERY_DATE"] = e.delivery_target || "";
         vars["ON_SITE_DATE"] = e.on_site_date || "";
-        vars["PORTAL_LINK"] = e.portal_url || "";
         vars["INVOICE_AMOUNT"] = e.fee ? `$${e.fee.toLocaleString()}` : "";
         vars["INVOICE_NUMBER"] = e.freshbooks_balance_invoice_number || "";
+
+        // Portal link: prefer the most recent active portal-scoped token.
+        // Fall back to the legacy engagement.portal_url field for back-compat
+        // with engagements created before PublicAccessToken existed.
+        const portalLinkFromToken = await getActivePublicUrl(base44, 'portal', linked_record_id, practice_domain);
+        vars["PORTAL_LINK"] = portalLinkFromToken || e.portal_url || "";
 
         // Guarantee vars
         const items = await base44.asServiceRole.entities.EngagementGuaranteeItem.filter({
           engagement_id: e.id
         });
-        const weightedTotal = (items || []).reduce((sum, item) => sum + (item.weighted_amount || 0), 0);
-        const totalOpp = (items || []).reduce((sum, item) => sum + (item.stated_amount || 0), 0);
+        const weightedTotal = (items || []).reduce((sum: number, item: any) => sum + (item.weighted_amount || 0), 0);
+        const totalOpp = (items || []).reduce((sum: number, item: any) => sum + (item.stated_amount || 0), 0);
         vars["WEIGHTED_TOTAL"] = `$${weightedTotal.toLocaleString()}`;
         vars["TOTAL_OPPORTUNITY"] = `$${totalOpp.toLocaleString()}`;
         vars["GUARANTEE_THRESHOLD"] = e.fee ? `$${(e.fee * 3).toLocaleString()}` : "";
@@ -137,7 +185,7 @@ Deno.serve(async (req) => {
 
     // Find unfilled manual variables
     const unfilledPattern = /\{\{(\w+)\}\}/g;
-    const unfilled = [];
+    const unfilled: string[] = [];
     const combined = renderedSubject + renderedBody;
     let match;
     while ((match = unfilledPattern.exec(combined)) !== null) {

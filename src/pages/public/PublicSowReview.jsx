@@ -315,7 +315,19 @@ function SignedConfirmation({ receipt, previouslySigned = false }) {
           </dl>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end items-center gap-2 pt-2">
+          {receipt.receipt_pdf_url && (
+            <Button asChild size="sm">
+              <a
+                href={safeHref(receipt.receipt_pdf_url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+              >
+                Download receipt PDF
+              </a>
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             Print
           </Button>

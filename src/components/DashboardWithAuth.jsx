@@ -1,37 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
+// Login landing rendered at '/'. Reads auth state from AuthContext rather
+// than firing an independent isAuthenticated() call. After successful login,
+// triggers checkUserAuth on the context so every other AuthContext consumer
+// (AuthGuard, useCurrentUser, etc.) sees the new session immediately.
+
 export default function DashboardWithAuth() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoadingAuth, authChecked, checkUserAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        setIsAuthenticated(isAuth);
-        if (isAuth) {
-          navigate('/dashboard');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
+    if (authChecked && !isLoadingAuth && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [authChecked, isLoadingAuth, isAuthenticated, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,7 +32,9 @@ export default function DashboardWithAuth() {
 
     try {
       await base44.auth.login(email, password);
-      setIsAuthenticated(true);
+      // Refresh the context's user/isAuthenticated state so every consumer
+      // (AuthGuard, useCurrentUser) re-renders with the new session.
+      await checkUserAuth();
       setEmail('');
       setPassword('');
       navigate('/dashboard');
@@ -51,7 +45,7 @@ export default function DashboardWithAuth() {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingAuth || !authChecked) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -64,7 +58,7 @@ export default function DashboardWithAuth() {
 
   if (!isAuthenticated) {
     return (
-      <div 
+      <div
         className="min-h-screen flex items-center justify-center"
         style={{ backgroundColor: '#0A2540' }}
       >
@@ -135,6 +129,6 @@ export default function DashboardWithAuth() {
     );
   }
 
-  // This should never render if auth check works; return null
+  // Authenticated state — useEffect navigates away.
   return null;
 }

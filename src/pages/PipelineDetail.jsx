@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, ExternalLink, Briefcase, FileText } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Briefcase, FileText, ShieldCheck } from 'lucide-react';
+import { safeHref } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
@@ -109,7 +110,11 @@ export default function PipelineDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {user?.role === 'founder' && record.stage === 'Proposal Presented' && (
+          {/* SOW generation hidden once a signature exists, to prevent overwriting
+              the document the recipient agreed to. The sow_sha256 audit field
+              anchors the bytes (or URL) at sign time; replacing the URL after
+              would silently desync the audit trail. */}
+          {user?.role === 'founder' && record.stage === 'Proposal Presented' && !record.sow_signed_at && (
             <Button size="sm" variant="outline" onClick={() => setShowSowGenerator(true)}>
               <FileText className="w-3.5 h-3.5 mr-1" /> Generate Service Agreement
             </Button>
@@ -124,6 +129,16 @@ export default function PipelineDetail() {
                 fee: record.proposed_fee || '',
                 sow_signed_url: record.sow_signed_url || '',
                 sow_signed_date: record.sow_signed_date || '',
+                // Clickwrap audit fields — carry forward to engagement so the
+                // signature receipt remains visible alongside delivery work.
+                sow_signed_at: record.sow_signed_at || '',
+                sow_signed_by_name: record.sow_signed_by_name || '',
+                sow_signed_by_email: record.sow_signed_by_email || '',
+                sow_signed_ip: record.sow_signed_ip || '',
+                sow_signed_user_agent: record.sow_signed_user_agent || '',
+                sow_sha256: record.sow_sha256 || '',
+                sow_signature_token_id: record.sow_signature_token_id || '',
+                sow_signature_receipt_url: record.sow_signature_receipt_url || '',
                 freshbooks_deposit_invoice_url: record.freshbooks_deposit_invoice_url || '',
                 freshbooks_deposit_invoice_number: record.freshbooks_deposit_invoice_number || '',
               });
@@ -263,6 +278,56 @@ export default function PipelineDetail() {
               disabled={!record.sow_generated_url}
               disabledReason="Upload the SOW PDF (set sow_generated_url) before issuing a review link."
             />
+          )}
+
+          {!isVA && record.sow_signed_at && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-success" /> Signature Receipt
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-xs">
+                <div className="grid grid-cols-[7rem_1fr] gap-y-1.5">
+                  <span className="text-muted-foreground">Signed by</span>
+                  <span className="font-medium">{record.sow_signed_by_name || '—'}</span>
+                  <span className="text-muted-foreground">Email</span>
+                  <span>{record.sow_signed_by_email || '—'}</span>
+                  <span className="text-muted-foreground">Signed at</span>
+                  <span>{format(new Date(record.sow_signed_at), 'PPpp')}</span>
+                  {record.sow_signed_ip && (
+                    <>
+                      <span className="text-muted-foreground">IP</span>
+                      <span className="font-mono text-[10px]">{record.sow_signed_ip}</span>
+                    </>
+                  )}
+                  {record.sow_sha256 && (
+                    <>
+                      <span className="text-muted-foreground">Doc hash</span>
+                      <span className="font-mono text-[10px] break-all">{record.sow_sha256}</span>
+                    </>
+                  )}
+                  {record.sow_signature_token_id && (
+                    <>
+                      <span className="text-muted-foreground">Token</span>
+                      <span className="font-mono text-[10px] break-all">{record.sow_signature_token_id}</span>
+                    </>
+                  )}
+                </div>
+                {record.sow_signature_receipt_url && (
+                  <div className="pt-2 border-t border-border">
+                    <a
+                      href={safeHref(record.sow_signature_receipt_url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <ExternalLink className="w-3 h-3" /> Download receipt PDF
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           {isFounder && (

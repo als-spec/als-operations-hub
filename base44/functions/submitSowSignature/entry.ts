@@ -1,8 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.27';
+import { PDFDocument, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
 
 // Guarded write. Captures clickwrap acceptance, anchors the signature to the
 // document via sha256, marks the token consumed, advances the pipeline stage,
-// and emails confirmation receipts to the signer and the issuing operator.
+// generates a one-page receipt PDF, and emails confirmation to the signer
+// (operator on cc) with the receipt URL.
 
 const TYPED_NAME_MIN = 2;
 const TYPED_NAME_MAX = 200;
@@ -39,6 +41,89 @@ function escapeHtml(s: string): string {
   }[c]!));
 }
 
+// Build a one-page signature-receipt PDF. Best-effort: any failure is
+// swallowed by the caller so the signature is still recorded even if PDF
+// generation breaks (e.g. pdf-lib import fails at deploy time).
+async function buildReceiptPdf(data: {
+  facility_name: string;
+  typed_name: string;
+  signer_email: string;
+  signed_at: string;
+  ip: string;
+  user_agent: string;
+  sow_url: string;
+  sow_sha256: string;
+  sha256_source: string;
+  token_id: string;
+}): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([612, 792]); // US letter
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const margin = 56;
+  let y = 792 - margin;
+  const muted = rgb(0.4, 0.4, 0.4);
+  const text = rgb(0.1, 0.1, 0.1);
+
+  page.drawText('Signature Receipt', { x: margin, y, size: 22, font: bold, color: text });
+  y -= 28;
+  page.drawText('ALS Professional Network', { x: margin, y, size: 11, font, color: muted });
+  y -= 24;
+  page.drawLine({ start: { x: margin, y }, end: { x: 612 - margin, y }, thickness: 0.5, color: muted });
+  y -= 24;
+
+  page.drawText(`Statement of Work — ${data.facility_name || '(no facility name)'}`,
+    { x: margin, y, size: 13, font: bold, color: text });
+  y -= 28;
+
+  const rows: Array<[string, string]> = [
+    ['Signer', data.typed_name],
+    ['Email', data.signer_email],
+    ['Signed at (UTC)', data.signed_at],
+    ['IP', data.ip || 'n/a'],
+    ['User agent', (data.user_agent || 'n/a').slice(0, 90)],
+    ['Document URL', data.sow_url],
+    ['Document hash (sha256)', `${data.sow_sha256}`],
+    ['Hash source', data.sha256_source === 'bytes' ? 'document bytes' : 'document URL'],
+    ['Token ID', data.token_id],
+  ];
+
+  for (const [label, value] of rows) {
+    page.drawText(label, { x: margin, y, size: 9, font: bold, color: muted });
+    y -= 12;
+    // Wrap long values at ~84 chars
+    const safeValue = String(value ?? '');
+    const lines: string[] = [];
+    let remaining = safeValue;
+    while (remaining.length > 84) {
+      lines.push(remaining.slice(0, 84));
+      remaining = remaining.slice(84);
+    }
+    lines.push(remaining);
+    for (const line of lines) {
+      page.drawText(line, { x: margin, y, size: 10, font, color: text });
+      y -= 14;
+    }
+    y -= 6;
+  }
+
+  y -= 10;
+  page.drawLine({ start: { x: margin, y }, end: { x: 612 - margin, y }, thickness: 0.5, color: muted });
+  y -= 18;
+  const footer = [
+    'This receipt is auto-generated proof of typed-name acceptance ("clickwrap") of the document',
+    'referenced above. The Document hash anchors the receipt to a specific version of the document.',
+    'Keep this PDF for your records.',
+  ];
+  for (const line of footer) {
+    page.drawText(line, { x: margin, y, size: 9, font, color: muted });
+    y -= 12;
+  }
+
+  return await pdfDoc.save();
+}
+
 async function sendReceiptEmail(
   base44: any,
   to: { name: string; email: string },
@@ -52,6 +137,7 @@ async function sendReceiptEmail(
     sow_sha256: string;
     sha256_source: string;
     token_id: string;
+    receipt_pdf_url: string;
   },
 ) {
   try {
@@ -65,11 +151,17 @@ async function sendReceiptEmail(
       sha: escapeHtml(data.sow_sha256),
       src: data.sha256_source === 'bytes' ? 'document bytes' : 'document URL',
       token: escapeHtml(data.token_id),
+      receipt_pdf_url: escapeHtml(data.receipt_pdf_url || ''),
     };
+
+    const receipt_pdf_block = data.receipt_pdf_url
+      ? `<p style="margin:16px 0;"><a href="${safe.receipt_pdf_url}" style="display:inline-block;padding:10px 16px;background:#0a3a5c;color:#fff;text-decoration:none;border-radius:4px;">Download signed-receipt PDF</a></p>`
+      : '';
 
     const html = `
 <p>This confirms that <strong>${safe.typed}</strong> signed the Statement of Work for
 <strong>${safe.facility}</strong> on ${safe.signed_at}.</p>
+${receipt_pdf_block}
 <h3>Receipt</h3>
 <table style="border-collapse:collapse;font-size:13px;">
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Signer</td><td>${safe.typed}</td></tr>
@@ -203,6 +295,34 @@ Deno.serve(async (req) => {
       changed_by: `${typed_name} <${t.recipient_email}> (clickwrap)`,
     });
 
+    // Build + upload the signature-receipt PDF. Best-effort: failure logs but
+    // does NOT undo the signature — the audit-trail data on the record itself
+    // remains the source of truth. The PDF is convenience for the recipient
+    // (printable archive) and a downloadable artifact for compliance.
+    let receipt_pdf_url = '';
+    try {
+      const pdfBytes = await buildReceiptPdf({
+        facility_name: record.facility_name || '',
+        typed_name,
+        signer_email: t.recipient_email,
+        signed_at,
+        ip,
+        user_agent: ua,
+        sow_url,
+        sow_sha256,
+        sha256_source,
+        token_id: t.id,
+      });
+      const safe_facility = (record.facility_name || 'sow')
+        .replace(/[^A-Za-z0-9._\- ]/g, '_').slice(0, 80);
+      const filename = `receipt-${safe_facility}-${signed_date}.pdf`;
+      const file = new File([pdfBytes], filename, { type: 'application/pdf' });
+      const uploadRes = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+      receipt_pdf_url = uploadRes?.file_url || '';
+    } catch (err) {
+      console.error('Receipt PDF generation failed:', err);
+    }
+
     // Use service-role write to bypass main's pipelineStageGate BEFORE-UPDATE
     // trigger (which has a 'founder only' check on Rule 16 that would reject an
     // unauthenticated recipient signing). Our function performs equivalent
@@ -220,6 +340,7 @@ Deno.serve(async (req) => {
       sow_signed_user_agent: ua,
       sow_sha256,
       sow_signature_token_id: t.id,
+      sow_signature_receipt_url: receipt_pdf_url,
     });
 
     await base44.entities.PublicAccessToken.update(t.id, {
@@ -254,6 +375,7 @@ Deno.serve(async (req) => {
         sow_sha256,
         sha256_source,
         token_id: t.id,
+        receipt_pdf_url,
       },
     );
 
@@ -268,6 +390,7 @@ Deno.serve(async (req) => {
         sow_sha256,
         sha256_source,
         token_id: t.id,
+        receipt_pdf_url,
       },
     });
   } catch (err) {

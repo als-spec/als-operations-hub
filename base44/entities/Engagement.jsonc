@@ -214,6 +214,10 @@
       "type": "string",
       "description": "Carried from pipeline record"
     },
+    "sow_signature_receipt_url": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
     "freshbooks_deposit_invoice_url": {
       "type": "string",
       "description": "Carried from pipeline record"
@@ -276,24 +280,24 @@
     },
     "portal_token": {
       "type": "string",
-      "description": "Legacy portal token field from main's earlier portal mechanism. Superseded by PublicAccessToken entity; retained for data preservation."
+      "description": "DEPRECATED — do not write. Legacy field from main's earlier portal mechanism, retained only for read-back of pre-migration data. Replaced by PublicAccessToken entity. Will be removed after data migration audit confirms no live consumers."
     },
     "portal_url": {
       "type": "string",
-      "description": "Legacy portal URL field. Superseded by PublicAccessToken-derived URLs."
+      "description": "DEPRECATED — do not write. Legacy field. emailVariableResolver still falls back to it when no PublicAccessToken exists for the engagement. Remove after data migration."
     },
     "portal_active": {
       "type": "boolean",
       "default": true,
-      "description": "Legacy portal active flag. Superseded by PublicAccessToken.revoked / consumed_at."
+      "description": "DEPRECATED — do not write. Legacy field. Use PublicAccessToken.revoked / consumed_at instead."
     },
     "portal_created_at": {
       "type": "string",
-      "description": "Legacy portal creation timestamp."
+      "description": "DEPRECATED — do not write. Legacy field."
     },
     "portal_last_viewed_at": {
       "type": "string",
-      "description": "Legacy portal last-view timestamp. Superseded by PublicAccessToken.last_accessed_at."
+      "description": "DEPRECATED — do not write. Legacy field. Use PublicAccessToken.last_accessed_at + PublicAccessEvent('view') instead."
     }
   },
   "required": [
