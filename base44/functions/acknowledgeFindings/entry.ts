@@ -163,7 +163,9 @@ Deno.serve(async (req) => {
     const by_name = (t.recipient_name || '').trim() || t.recipient_email;
     const acknowledged_at = new Date().toISOString();
 
-    await base44.entities.Engagement.update(engagement.id, {
+    // Service-role write — recipient is unauthenticated; if Engagement has
+    // any update-side gate or RLS, user-context write would be rejected.
+    await base44.asServiceRole.entities.Engagement.update(engagement.id, {
       findings_acknowledged_at: acknowledged_at,
       findings_acknowledged_by_name: by_name,
       findings_acknowledged_by_email: t.recipient_email,

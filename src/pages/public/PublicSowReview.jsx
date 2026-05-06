@@ -11,6 +11,7 @@ import { format, parseISO } from 'date-fns';
 import EmailVerificationGate from '@/components/public/EmailVerificationGate';
 import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
 import { usePublicTokenSession } from '@/hooks/usePublicTokenSession';
+import { safeHref } from '@/lib/utils';
 import {
   callGuardedPublicFunction,
   clearSessionId,
@@ -173,7 +174,7 @@ function ReviewAndSignForm({ data, submitting, error, onSubmit }) {
 
           {r.sow_generated_url ? (
             <a
-              href={r.sow_generated_url}
+              href={safeHref(r.sow_generated_url)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
@@ -284,7 +285,7 @@ function SignedConfirmation({ receipt, previouslySigned = false }) {
                 <dt className="text-muted-foreground">Document</dt>
                 <dd className="break-all">
                   <a
-                    href={receipt.sow_url}
+                    href={safeHref(receipt.sow_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"

@@ -16,6 +16,7 @@ import { format, parseISO } from 'date-fns';
 import EmailVerificationGate from '@/components/public/EmailVerificationGate';
 import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
 import { usePublicTokenSession } from '@/hooks/usePublicTokenSession';
+import { safeHref } from '@/lib/utils';
 import {
   callGuardedPublicFunction,
   clearSessionId,
@@ -371,7 +372,7 @@ function DeliverablesCard({ items }) {
             </Badge>
             {d.file_url && d.status === 'Complete' && (
               <a
-                href={d.file_url}
+                href={safeHref(d.file_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:underline flex items-center gap-1"
@@ -408,7 +409,7 @@ function FindingsCard({ engagement, canAcknowledge, token }) {
           {items.map(({ label, url, date, icon: Icon }) => (
             <a
               key={label}
-              href={url}
+              href={safeHref(url)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-3 p-2.5 rounded-md bg-secondary/30 hover:bg-secondary/60 transition-colors"
@@ -582,7 +583,7 @@ function SowReferenceCard({ engagement }) {
         )}
         {e.sow_signed_url && (
           <a
-            href={e.sow_signed_url}
+            href={safeHref(e.sow_signed_url)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

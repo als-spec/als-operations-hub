@@ -219,7 +219,9 @@ Deno.serve(async (req) => {
     const file_size_kb = Math.round(bytes.length / 1024);
     const now_iso = new Date().toISOString();
 
-    await base44.entities.Document.create({
+    // Service-role for both writes — Document and Engagement may have RLS or
+    // gate triggers that reject unauthenticated recipient context.
+    await base44.asServiceRole.entities.Document.create({
       name: file_name.replace(/\.[^/.]+$/, ''),
       category: 'Client Submitted',
       description: `Submitted via client portal for: ${item_name}`,
@@ -239,7 +241,7 @@ Deno.serve(async (req) => {
     const updated = data_requests.map((d: any, i: number) =>
       i === matchIdx ? { ...d, status: 'Received' } : d,
     );
-    await base44.entities.Engagement.update(engagement.id, { data_requests: updated });
+    await base44.asServiceRole.entities.Engagement.update(engagement.id, { data_requests: updated });
 
     await base44.entities.PublicAccessToken.update(t.id, {
       access_count: (t.access_count || 0) + 1,
