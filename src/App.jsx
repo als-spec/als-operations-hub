@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -9,6 +9,11 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardWithAuth from '@/components/DashboardWithAuth';
+import PublicLayout from '@/components/layout/PublicLayout';
+import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
+import PublicSowReview from '@/pages/public/PublicSowReview';
+import ClientPortal from '@/pages/public/ClientPortal';
+import Dashboard from '@/pages/Dashboard';
 import Prospects from '@/pages/Prospects';
 import ProspectDetail from '@/pages/ProspectDetail';
 import ProspectForm from '@/pages/ProspectForm';
@@ -29,10 +34,6 @@ import Communications from '@/pages/Communications';
 import ClientEmail from '@/pages/ClientEmail';
 import Documents from '@/pages/Documents';
 import Settings from '@/pages/Settings';
-import ClientPortal from '@/pages/ClientPortal';
-import RetainerPortal from '@/pages/RetainerPortal';
-import SowPublicView from '@/pages/SowPublicView';
-import Dashboard from '@/pages/Dashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -59,10 +60,10 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      {/* Login landing page — shows login form or dashboard */}
+      {/* Login landing page — shows login form or dashboard (from main) */}
       <Route path="/" element={<DashboardWithAuth />} />
-      
-      {/* Internal pages — wrapped with auth guard */}
+
+      {/* Internal pages — wrapped with auth guard (from main) */}
       <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/prospects" element={<Prospects />} />
@@ -86,24 +87,44 @@ const AuthenticatedApp = () => {
         <Route path="/documents" element={<Documents />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
-      <Route path="/portal/:token" element={<ClientPortal />} />
-      <Route path="/retainer-portal/:token" element={<RetainerPortal />} />
-      <Route path="/sow/:token" element={<SowPublicView />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
-function App() {
+// Public routes mount OUTSIDE AuthProvider so /p/* pages don't fire auth.me().
+// Token + email-verification gate is the only credential.
+const PublicRoutes = () => (
+  <Routes>
+    <Route element={<PublicLayout />}>
+      <Route path="/p/expired" element={<PublicLinkExpired />} />
+      <Route path="/p/sow/:token" element={<PublicSowReview />} />
+      <Route path="/p/portal/:token" element={<ClientPortal />} />
+    </Route>
+    <Route path="/p/*" element={<PublicLinkExpired />} />
+  </Routes>
+);
+
+const AppRoutes = () => {
+  const { pathname } = useLocation();
+  if (pathname.startsWith('/p/')) {
+    return <PublicRoutes />;
+  }
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
+      <AuthenticatedApp />
     </AuthProvider>
+  );
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClientInstance}>
+      <Router>
+        <AppRoutes />
+      </Router>
+      <Toaster />
+    </QueryClientProvider>
   )
 }
 

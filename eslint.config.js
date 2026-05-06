@@ -57,4 +57,23 @@ export default [
       "react-hooks/rules-of-hooks": "error",
     },
   },
+  {
+    files: [
+      "src/pages/public/**/*.{js,mjs,cjs,jsx}",
+      "src/components/public/**/*.{js,mjs,cjs,jsx}",
+      "src/components/layout/PublicLayout.jsx",
+    ],
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: [
+          { name: "@/lib/AuthContext", message: "Public pages must not depend on AuthProvider/useAuth." },
+          { name: "@/lib/useCurrentUser", message: "Public pages must not call base44.auth.me()." },
+          { name: "@/components/layout/AppLayout", message: "Public pages use PublicLayout, not AppLayout." },
+          { name: "@/components/layout/Sidebar", message: "Public pages render no sidebar." },
+          { name: "@/components/layout/TopBar", message: "Public pages render no topbar." },
+          { name: "@/api/base44Client", message: "Public pages must use the public/* function client (token-authenticated), never the SDK directly." },
+        ],
+      }],
+    },
+  },
 ];

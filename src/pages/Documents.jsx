@@ -16,6 +16,7 @@ const CATEGORIES = [
   'Email Templates',
   'Call Scripts',
   'Client Deliverables',
+  'Client Submitted',
   'Internal Working Templates',
   'Reference',
 ];
@@ -25,6 +26,7 @@ const CATEGORY_COLORS = {
   'Email Templates':             'bg-purple-100 text-purple-700',
   'Call Scripts':                'bg-teal/10 text-teal-700',
   'Client Deliverables':         'bg-warning/10 text-warning',
+  'Client Submitted':            'bg-success/10 text-success',
   'Internal Working Templates':  'bg-pink-100 text-pink-700',
   'Reference':                   'bg-secondary text-secondary-foreground',
   // legacy fallbacks

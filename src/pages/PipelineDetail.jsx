@@ -14,6 +14,8 @@ import { ArrowLeft, ExternalLink, Briefcase, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
+import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
+import PublicLinkActivity from '@/components/sharing/PublicLinkActivity';
 import SowGenerator from '@/components/pipeline/SowGenerator';
 
 const STAGES = [
@@ -25,7 +27,7 @@ export default function PipelineDetail() {
   const id = window.location.pathname.split('/').pop();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { isOperator, isVA, user } = useCurrentUser();
+  const { isOperator, isVA, isFounder, user } = useCurrentUser();
   const [showBant, setShowBant] = useState(false);
   const [showSowGenerator, setShowSowGenerator] = useState(false);
   const [callNote, setCallNote] = useState('');
@@ -251,6 +253,24 @@ export default function PipelineDetail() {
             onSave={(updates) => updateMutation.mutate(updates)}
             readOnly={isVA}
           />
+
+          {!isVA && (
+            <PublicLinkPanel
+              resourceType="sow"
+              resourceId={record.id}
+              defaultRecipientEmail={record.admin_email || ''}
+              defaultRecipientName={record.admin_name || ''}
+              disabled={!record.sow_generated_url}
+              disabledReason="Upload the SOW PDF (set sow_generated_url) before issuing a review link."
+            />
+          )}
+
+          {isFounder && (
+            <PublicLinkActivity
+              resourceType="sow"
+              resourceId={record.id}
+            />
+          )}
 
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Decision Makers</CardTitle></CardHeader>

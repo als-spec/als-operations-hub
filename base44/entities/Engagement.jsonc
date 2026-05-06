@@ -185,6 +185,35 @@
       "type": "string",
       "format": "date"
     },
+    "sow_signed_by_name": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_by_email": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_ip": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signed_user_agent": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_sha256": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
+    "sow_signature_token_id": {
+      "type": "string",
+      "description": "Carried from pipeline record"
+    },
     "freshbooks_deposit_invoice_url": {
       "type": "string",
       "description": "Carried from pipeline record"
@@ -220,26 +249,51 @@
       "type": "string",
       "format": "date"
     },
+    "findings_acknowledged_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set when the client clicks Acknowledge findings on the portal."
+    },
+    "findings_acknowledged_by_name": {
+      "type": "string"
+    },
+    "findings_acknowledged_by_email": {
+      "type": "string"
+    },
+    "findings_acknowledgment_ip": {
+      "type": "string"
+    },
+    "findings_acknowledgment_user_agent": {
+      "type": "string"
+    },
+    "findings_acknowledgment_notes": {
+      "type": "string",
+      "description": "Optional free-text comments captured at acknowledgment time."
+    },
+    "findings_acknowledgment_token_id": {
+      "type": "string",
+      "description": "Back-link to the PublicAccessToken used for ack, for audit trail."
+    },
     "portal_token": {
       "type": "string",
-      "description": "Hashed token for portal access"
+      "description": "Legacy portal token field from main's earlier portal mechanism. Superseded by PublicAccessToken entity; retained for data preservation."
     },
     "portal_url": {
       "type": "string",
-      "description": "Full portal URL for client"
+      "description": "Legacy portal URL field. Superseded by PublicAccessToken-derived URLs."
     },
     "portal_active": {
       "type": "boolean",
       "default": true,
-      "description": "Portal access active status"
+      "description": "Legacy portal active flag. Superseded by PublicAccessToken.revoked / consumed_at."
     },
     "portal_created_at": {
       "type": "string",
-      "description": "When portal token was generated"
+      "description": "Legacy portal creation timestamp."
     },
     "portal_last_viewed_at": {
       "type": "string",
-      "description": "Last time client accessed portal"
+      "description": "Legacy portal last-view timestamp. Superseded by PublicAccessToken.last_accessed_at."
     }
   },
   "required": [

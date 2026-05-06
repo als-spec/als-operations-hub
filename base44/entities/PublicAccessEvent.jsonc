@@ -1,0 +1,53 @@
+{
+  "name": "PublicAccessEvent",
+  "type": "object",
+  "description": "Audit log for every interaction with a PublicAccessToken (success and failure). Founder/admin read-only; written by public/* Deno functions.",
+  "properties": {
+    "token_id": {
+      "type": "string"
+    },
+    "resource_type": {
+      "type": "string"
+    },
+    "resource_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "view",
+        "verify_request",
+        "verify_success",
+        "verify_failure",
+        "sign",
+        "upload",
+        "acknowledge",
+        "denied_expired",
+        "denied_revoked",
+        "denied_invalid",
+        "denied_consumed",
+        "denied_scope",
+        "denied_email_mismatch",
+        "denied_rate_limit"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ip": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "success": {
+      "type": "boolean"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Free-form per-action data (e.g. signed name, file size, error code)."
+    }
+  },
+  "required": ["resource_type", "resource_id", "action", "ts", "success"]
+}

@@ -30,7 +30,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // SOW Signed PDF uploaded → auto-advance to "SOW Signed" + generate token
+    // SOW Signed PDF uploaded → auto-advance to "SOW Signed".
+    //
+    // NOTE: prior to the public-portal hardening, this branch also generated a
+    // bare-UUID portal token and wrote it onto the record. That has been
+    // removed: portal access is now issued explicitly via PublicLinkPanel ->
+    // issuePublicToken (scoped, expirable, revocable, audit-logged via
+    // PublicAccessToken / PublicAccessEvent). The auto-advance itself remains
+    // useful — it covers the case where a signed SOW is uploaded out of band
+    // (i.e. not via the clickwrap flow). When clickwrap submitSowSignature
+    // runs, it advances the stage atomically so the condition below is a
+    // no-op (`record.stage === "SOW Signed"` skips this branch).
     if (record.sow_signed_url?.trim() &&
         !previousRecord?.sow_signed_url?.trim() &&
         (record.stage === "SOW Sent" || record.stage === "Proposal Presented")) {
@@ -43,30 +53,20 @@ Deno.serve(async (req) => {
         changed_by: "system (signed SOW uploaded)"
       });
 
-      const portalToken = crypto.randomUUID();
-
-      const settings = await base44.asServiceRole.entities.PracticeSettings.filter({});
-      const domain = settings?.[0]?.practice_domain || "app.example.com";
-      const portalUrl = `https://app.${domain}/portal/${portalToken}`;
-
       await base44.asServiceRole.entities.PipelineRecord.update(record.id, {
         stage: newStage,
         stage_history: record.stage_history,
-        sow_signed_date: record.sow_signed_date || new Date().toISOString().split("T")[0],
-        _portal_token: portalToken,
-        _portal_url: portalUrl
+        sow_signed_date: record.sow_signed_date || new Date().toISOString().split("T")[0]
       });
 
-      // Log to prospect activity
       if (record.prospect_id) {
         await base44.asServiceRole.entities.ProspectActivity.create({
           prospect_id: record.prospect_id,
           type: "stage_change",
-          content: "Pipeline advanced to SOW Signed. Portal link generated.",
+          content: "Pipeline advanced to SOW Signed.",
           metadata: {
             old_stage: previousRecord?.stage,
-            new_stage: newStage,
-            portal_url: portalUrl
+            new_stage: newStage
           }
         });
       }

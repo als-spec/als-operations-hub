@@ -28,6 +28,11 @@ export default function ClientEmail() {
     queryFn: () => base44.entities.Engagement.list('-updated_date', 50),
   });
 
+  const { data: pipelineRecords = [] } = useQuery({
+    queryKey: ['pipeline-records'],
+    queryFn: () => base44.entities.PipelineRecord.list('-updated_date', 100),
+  });
+
   const { data: retainers = [] } = useQuery({
     queryKey: ['retainers'],
     queryFn: () => base44.entities.Retainer.list('-created_date', 50),
@@ -57,6 +62,7 @@ export default function ClientEmail() {
         <EmailComposer
           prefill={prefill}
           prospects={prospects}
+          pipelineRecords={pipelineRecords}
           engagements={engagements}
           retainers={retainers}
           currentUser={user}

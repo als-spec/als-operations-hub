@@ -14,6 +14,7 @@ const CATEGORIES = [
   'Email Templates',
   'Call Scripts',
   'Client Deliverables',
+  'Client Submitted',
   'Internal Working Templates',
   'Reference',
 ];
