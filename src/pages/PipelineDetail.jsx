@@ -129,6 +129,16 @@ export default function PipelineDetail() {
                 fee: record.proposed_fee || '',
                 sow_signed_url: record.sow_signed_url || '',
                 sow_signed_date: record.sow_signed_date || '',
+                // Clickwrap audit fields — carry forward to engagement so the
+                // signature receipt remains visible alongside delivery work.
+                sow_signed_at: record.sow_signed_at || '',
+                sow_signed_by_name: record.sow_signed_by_name || '',
+                sow_signed_by_email: record.sow_signed_by_email || '',
+                sow_signed_ip: record.sow_signed_ip || '',
+                sow_signed_user_agent: record.sow_signed_user_agent || '',
+                sow_sha256: record.sow_sha256 || '',
+                sow_signature_token_id: record.sow_signature_token_id || '',
+                sow_signature_receipt_url: record.sow_signature_receipt_url || '',
                 freshbooks_deposit_invoice_url: record.freshbooks_deposit_invoice_url || '',
                 freshbooks_deposit_invoice_number: record.freshbooks_deposit_invoice_number || '',
               });

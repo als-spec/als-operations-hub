@@ -1,33 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+
+// Redirects unauthenticated users to '/' (the login landing). Reads from
+// AuthContext rather than firing its own auth.isAuthenticated() — the
+// context's auth.me() check is the single source of truth for session state.
 
 export default function AuthGuard({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { isAuthenticated, isLoadingAuth, authChecked } = useAuth();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        setIsAuthenticated(isAuth);
-        if (!isAuth) {
-          navigate('/', { replace: true });
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
-        navigate('/', { replace: true });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (authChecked && !isLoadingAuth && !isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [authChecked, isLoadingAuth, isAuthenticated, navigate]);
 
-    checkAuth();
-  }, [navigate]);
-
-  if (isLoading) {
+  if (isLoadingAuth || !authChecked) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -38,9 +27,7 @@ export default function AuthGuard({ children }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return children;
 }

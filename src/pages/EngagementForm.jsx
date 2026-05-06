@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,17 @@ export default function EngagementForm() {
     // Carry forward document links from pipeline record
     sow_signed_url: params.get('sow_signed_url') || '',
     sow_signed_date: params.get('sow_signed_date') || '',
+    // Carry forward clickwrap signing audit fields. Source of truth stays on
+    // the pipeline record; engagement gets a copy so the operator UI on the
+    // engagement can show the receipt without re-querying pipeline.
+    sow_signed_at: params.get('sow_signed_at') || '',
+    sow_signed_by_name: params.get('sow_signed_by_name') || '',
+    sow_signed_by_email: params.get('sow_signed_by_email') || '',
+    sow_signed_ip: params.get('sow_signed_ip') || '',
+    sow_signed_user_agent: params.get('sow_signed_user_agent') || '',
+    sow_sha256: params.get('sow_sha256') || '',
+    sow_signature_token_id: params.get('sow_signature_token_id') || '',
+    sow_signature_receipt_url: params.get('sow_signature_receipt_url') || '',
     freshbooks_deposit_invoice_url: params.get('freshbooks_deposit_invoice_url') || '',
     freshbooks_deposit_invoice_number: params.get('freshbooks_deposit_invoice_number') || '',
     kickoff_date: '', on_site_date: '', operator_name: '',
