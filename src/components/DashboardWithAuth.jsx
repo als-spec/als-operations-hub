@@ -1,0 +1,140 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+
+export default function DashboardWithAuth() {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        setIsAuthenticated(isAuth);
+        if (isAuth) {
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoggingIn(true);
+
+    try {
+      await base44.auth.login(email, password);
+      setIsAuthenticated(true);
+      setEmail('');
+      setPassword('');
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+          <span className="text-xs text-muted-foreground">Loading…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: '#0A2540' }}
+      >
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center space-y-2 pb-8">
+            <h1 className="text-3xl font-bold" style={{ color: '#0A2540' }}>
+              Operations Hub
+            </h1>
+            <p className="text-sm" style={{ color: '#475569' }}>
+              ALS Professional Network · Internal Operations
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  disabled={loggingIn}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">
+                  Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  disabled={loggingIn}
+                />
+              </div>
+
+              {error && (
+                <div className="p-3 rounded-md" style={{ backgroundColor: '#FEE2E2', color: '#991B1B' }}>
+                  <p className="text-sm">{error}</p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loggingIn}
+                style={{ backgroundColor: '#1DE9B6', color: '#0A2540' }}
+              >
+                {loggingIn ? 'Logging in…' : 'Log In'}
+              </Button>
+            </form>
+
+            <p className="text-xs text-center" style={{ color: '#6B7280' }}>
+              Contact your administrator to create an account
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // This should never render if auth check works; return null
+  return null;
+}

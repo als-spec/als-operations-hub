@@ -273,6 +273,27 @@
     "findings_acknowledgment_token_id": {
       "type": "string",
       "description": "Back-link to the PublicAccessToken used for ack, for audit trail."
+    },
+    "portal_token": {
+      "type": "string",
+      "description": "Legacy portal token field from main's earlier portal mechanism. Superseded by PublicAccessToken entity; retained for data preservation."
+    },
+    "portal_url": {
+      "type": "string",
+      "description": "Legacy portal URL field. Superseded by PublicAccessToken-derived URLs."
+    },
+    "portal_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Legacy portal active flag. Superseded by PublicAccessToken.revoked / consumed_at."
+    },
+    "portal_created_at": {
+      "type": "string",
+      "description": "Legacy portal creation timestamp."
+    },
+    "portal_last_viewed_at": {
+      "type": "string",
+      "description": "Legacy portal last-view timestamp. Superseded by PublicAccessToken.last_accessed_at."
     }
   },
   "required": [

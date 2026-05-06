@@ -10,12 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, ExternalLink, Briefcase } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Briefcase, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
 import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
 import PublicLinkActivity from '@/components/sharing/PublicLinkActivity';
+import SowGenerator from '@/components/pipeline/SowGenerator';
 
 const STAGES = [
   'Discovery Call Scheduled', 'Discovery Complete', 'Proposal Call Scheduled',
@@ -26,8 +27,9 @@ export default function PipelineDetail() {
   const id = window.location.pathname.split('/').pop();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { isOperator, isVA, isFounder } = useCurrentUser();
+  const { isOperator, isVA, isFounder, user } = useCurrentUser();
   const [showBant, setShowBant] = useState(false);
+  const [showSowGenerator, setShowSowGenerator] = useState(false);
   const [callNote, setCallNote] = useState('');
 
   const { data: record, isLoading } = useQuery({
@@ -37,6 +39,24 @@ export default function PipelineDetail() {
       return list[0];
     },
     enabled: !!id && id !== 'new',
+  });
+
+  const { data: prospect } = useQuery({
+    queryKey: ['prospect', record?.prospect_id],
+    queryFn: async () => {
+      if (!record?.prospect_id) return null;
+      const list = await base44.entities.Prospect.filter({ id: record.prospect_id });
+      return list[0];
+    },
+    enabled: !!record?.prospect_id,
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ['practice-settings'],
+    queryFn: async () => {
+      const list = await base44.entities.PracticeSettings.filter({});
+      return list[0];
+    },
   });
 
   const updateMutation = useMutation({
@@ -89,6 +109,11 @@ export default function PipelineDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {user?.role === 'founder' && record.stage === 'Proposal Presented' && (
+            <Button size="sm" variant="outline" onClick={() => setShowSowGenerator(true)}>
+              <FileText className="w-3.5 h-3.5 mr-1" /> Generate Service Agreement
+            </Button>
+          )}
           {!isVA && record.stage === 'Deposit Received' && (
             <Button size="sm" onClick={() => {
               const params = new URLSearchParams({
@@ -266,6 +291,20 @@ export default function PipelineDetail() {
 
       {/* BANT Modal */}
       {showBant && <BantForm record={record} onSubmit={handleBantSubmit} onClose={() => setShowBant(false)} />}
+
+      {/* SOW Generator Modal */}
+      {showSowGenerator && (
+        <SowGenerator
+          record={record}
+          prospect={prospect}
+          settings={settings}
+          onClose={() => setShowSowGenerator(false)}
+          onSuccess={() => {
+            qc.invalidateQueries({ queryKey: ['pipeline-record', id] });
+            setShowSowGenerator(false);
+          }}
+        />
+      )}
     </div>
   );
 }

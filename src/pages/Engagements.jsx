@@ -54,8 +54,10 @@ export default function Engagements() {
               <Card key={eng.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/engagements/${eng.id}`)}>
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold text-sm">{eng.facility_name}</h3>
+                     <div>
+                       <button onClick={() => navigate(`/engagements/${eng.id}`)} className="font-semibold text-sm text-cobalt hover:underline cursor-pointer">
+                         {eng.facility_name}
+                       </button>
                       <Badge variant="outline" className={`text-[10px] mt-1 ${statusColors[eng.status] || ''}`}>{eng.status}</Badge>
                     </div>
                     {currentWeek && <Badge variant="secondary" className="text-[10px]">Week {currentWeek}</Badge>}

@@ -125,8 +125,12 @@ export default function Pipeline() {
             </thead>
             <tbody>
               {activeRecords.map(r => (
-                <tr key={r.id} className="border-b cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/pipeline/${r.id}`)}>
-                  <td className="p-3 font-medium">{r.facility_name}</td>
+                <tr key={r.id} className="border-b cursor-pointer hover:bg-muted/50">
+                   <td className="p-3 font-medium">
+                     <button onClick={() => navigate(`/pipeline/${r.id}`)} className="text-cobalt hover:underline cursor-pointer">
+                       {r.facility_name}
+                     </button>
+                   </td>
                   <td className="p-3 text-muted-foreground">{r.admin_name || '—'}</td>
                   <td className="p-3"><Badge variant="secondary" className="text-[10px]">{stageShort[r.stage]}</Badge></td>
                   <td className="p-3 font-medium">{r.proposed_fee ? `$${r.proposed_fee.toLocaleString()}` : '—'}</td>

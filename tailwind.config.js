@@ -48,7 +48,11 @@ module.exports = {
   			ring: 'hsl(var(--ring))',
         navy: 'hsl(var(--navy))',
         cobalt: 'hsl(var(--cobalt))',
-        teal: 'hsl(var(--teal))',
+        teal: {
+          DEFAULT: 'hsl(var(--teal))',
+          '10': 'rgba(29, 233, 182, 0.1)',
+          '15': 'rgba(29, 233, 182, 0.15)',
+        },
         warning: 'hsl(var(--warning))',
         success: 'hsl(var(--success))',
   			chart: {

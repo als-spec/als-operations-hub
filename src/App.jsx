@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppLayout from '@/components/layout/AppLayout';
+import AuthGuard from '@/components/AuthGuard';
+import DashboardWithAuth from '@/components/DashboardWithAuth';
 import PublicLayout from '@/components/layout/PublicLayout';
 import PublicLinkExpired from '@/pages/public/PublicLinkExpired';
 import PublicSowReview from '@/pages/public/PublicSowReview';
@@ -58,8 +60,12 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
+      {/* Login landing page — shows login form or dashboard (from main) */}
+      <Route path="/" element={<DashboardWithAuth />} />
+
+      {/* Internal pages — wrapped with auth guard (from main) */}
+      <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/prospects" element={<Prospects />} />
         <Route path="/prospects/new" element={<ProspectForm />} />
         <Route path="/prospects/:id" element={<ProspectDetail />} />
@@ -86,6 +92,8 @@ const AuthenticatedApp = () => {
   );
 };
 
+// Public routes mount OUTSIDE AuthProvider so /p/* pages don't fire auth.me().
+// Token + email-verification gate is the only credential.
 const PublicRoutes = () => (
   <Routes>
     <Route element={<PublicLayout />}>
