@@ -15,6 +15,7 @@ import { ArrowLeft, Calendar, DollarSign, User, Shield, RefreshCw, Plus, Trash2,
 import { format } from 'date-fns';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
 import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
+import PublicLinkActivity from '@/components/sharing/PublicLinkActivity';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
 const DEFAULT_MILESTONES = [
@@ -347,6 +348,13 @@ export default function EngagementDetail() {
               resourceId={engagement.id}
               defaultRecipientEmail={engagement.admin_email || ''}
               defaultRecipientName={engagement.admin_name || ''}
+            />
+          )}
+
+          {isFounder && (
+            <PublicLinkActivity
+              resourceType="portal"
+              resourceId={engagement.id}
             />
           )}
 

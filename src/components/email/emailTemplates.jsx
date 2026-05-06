@@ -16,6 +16,7 @@ export const AUTO_VARS = [
   'DATA_DUE_DATE', 'CALL_LINK', 'RENEWAL_DATE', 'INVOICE_NUMBER',
   'INVOICE_AMOUNT', 'DUE_DATE', 'MONTHLY_FEE', 'GUARANTEE_THRESHOLD',
   'WEIGHTED_TOTAL', 'TOTAL_OPPORTUNITY',
+  'SOW_REVIEW_LINK', 'PORTAL_LINK',
 ];
 
 export const EMAIL_TEMPLATES = [
@@ -861,12 +862,90 @@ ALS Professional Network
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'INVOICE_NUMBER', 'INVOICE_AMOUNT', 'DUE_DATE', 'PHONE'],
     manual_vars: [],
   },
+
+  // ── Public-link templates (Phase 8 wiring) ─────────────────────────────────
+  {
+    id: 'PC-SOW-LINK',
+    series: 'PC',
+    name: 'SOW Ready for Review',
+    trigger: 'After issuing a SOW review link from the pipeline record',
+    default_sender: 'founder',
+    subject: 'SOW for {{AUTO:FACILITY_NAME}} — ready for your review',
+    body: `Hi {{AUTO:ADMIN_NAME}},
+
+The Statement of Work for {{AUTO:FACILITY_NAME}} is ready for your review.
+
+Please use the secure link below to read the SOW and sign electronically. The link will email you a 6-digit verification code before granting access:
+
+{{AUTO:SOW_REVIEW_LINK}}
+
+This link is valid for 14 days and is single-use — once you sign, it cannot be reused. If you have any questions about the terms, please reply directly to this email.
+
+Best regards,
+{{AUTO:FOUNDER_NAME}}
+ALS Professional Network
+{{AUTO:PHONE}} · {{AUTO:EMAIL}}`,
+    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'SOW_REVIEW_LINK', 'PHONE', 'EMAIL'],
+    manual_vars: [],
+  },
+  {
+    id: 'DD-PORTAL-LINK',
+    series: 'DD',
+    name: 'Engagement Portal Access',
+    trigger: 'After kickoff, alongside data request package',
+    default_sender: 'operator',
+    subject: 'Your engagement portal — {{AUTO:FACILITY_NAME}}',
+    body: `Hi {{AUTO:ADMIN_NAME}},
+
+Now that we are kicked off, here is your secure engagement portal where you can track milestones, upload requested data files, and review deliverables as they are ready:
+
+{{AUTO:PORTAL_LINK}}
+
+The first time you open it you will be asked to enter a 6-digit verification code we will email to you. The link will remain active for the duration of the engagement and you can return to it any time.
+
+Please let me know if you have any trouble accessing it.
+
+Best,
+{{AUTO:OPERATOR_NAME}}
+ALS Professional Network
+{{AUTO:OPERATOR_EMAIL}}`,
+    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'OPERATOR_NAME', 'OPERATOR_EMAIL', 'PORTAL_LINK'],
+    manual_vars: [],
+  },
+  {
+    id: 'FD-PORTAL-FINDINGS',
+    series: 'FD',
+    name: 'Findings Ready in Portal',
+    trigger: 'When findings deck/dashboard/roadmap are uploaded',
+    default_sender: 'founder',
+    subject: 'Findings ready for {{AUTO:FACILITY_NAME}}',
+    body: `Hi {{AUTO:ADMIN_NAME}},
+
+The findings deliverables for {{AUTO:FACILITY_NAME}} are ready. You can review the findings deck, analytics dashboard, and 90-day roadmap in your engagement portal:
+
+{{AUTO:PORTAL_LINK}}
+
+When you are done reviewing, please click "Acknowledge findings" in the portal so we have a record of receipt. We will then schedule a call to discuss next steps.
+
+Looking forward to walking through the results with you.
+
+Best,
+{{AUTO:FOUNDER_NAME}}
+ALS Professional Network`,
+    auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'PORTAL_LINK'],
+    manual_vars: [],
+  },
 ];
 
 /**
- * Build auto-variable map from a linked CRM record
+ * Build auto-variable map from a linked CRM record.
+ *
+ * `publicLinks` (optional) supplies the absolute URLs for {{AUTO:SOW_REVIEW_LINK}}
+ * and {{AUTO:PORTAL_LINK}}. Pass it when the linked record has an active
+ * PublicAccessToken issued for it; the EmailComposer queries for tokens and
+ * builds the URLs before calling this function.
  */
-export function buildAutoVars(record, recordType, user) {
+export function buildAutoVars(record, recordType, user, publicLinks = {}) {
   if (!record) return {};
   const vars = {
     PRACTICE_NAME: 'ALS Professional Network',
@@ -893,6 +972,8 @@ export function buildAutoVars(record, recordType, user) {
     GUARANTEE_THRESHOLD: record.fee ? `$${(Number(record.fee) * 3).toLocaleString()}` : '',
     WEIGHTED_TOTAL: '',
     TOTAL_OPPORTUNITY: '',
+    SOW_REVIEW_LINK: publicLinks.sowReviewLink || '',
+    PORTAL_LINK: publicLinks.portalLink || '',
   };
   return vars;
 }

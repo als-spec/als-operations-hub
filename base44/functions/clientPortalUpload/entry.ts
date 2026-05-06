@@ -9,6 +9,7 @@ const MAX_BYTES_PER_FILE = 25 * 1024 * 1024;     // 25 MB
 const MAX_BYTES_PER_TOKEN = 250 * 1024 * 1024;   // 250 MB total
 const MAX_FILES_PER_TOKEN = 25;
 const MAX_UPLOADS_PER_HOUR = 10;
+const MAX_UPLOADS_PER_IP_PER_HOUR = 30;
 
 const ALLOWED_MIME = new Set([
   'application/pdf',
@@ -147,13 +148,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Per-hour rate limit, derived from prior upload events for this token.
+    // Per-hour rate limits — per token always, per IP best-effort.
     const oneHourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
-    const events = await base44.entities.PublicAccessEvent.filter({
+    const eventsForToken = await base44.entities.PublicAccessEvent.filter({
       token_id: t.id,
       action: 'upload',
     });
-    const recentUploads = events.filter((e: any) => (e.ts || '') >= oneHourAgo);
+    const recentUploads = eventsForToken.filter((e: any) => (e.ts || '') >= oneHourAgo);
     if (recentUploads.length >= MAX_UPLOADS_PER_HOUR) {
       await base44.entities.PublicAccessEvent.create({
         token_id: t.id,
@@ -163,12 +164,35 @@ Deno.serve(async (req) => {
         ts: new Date().toISOString(),
         ip, user_agent: ua,
         success: false,
-        metadata: { recent_uploads: recentUploads.length, item_name },
+        metadata: { recent_uploads: recentUploads.length, item_name, scope: 'token' },
       }).catch(() => {});
       return Response.json(
         { error: 'Too many uploads in the last hour. Please wait and try again.' },
         { status: 429 },
       );
+    }
+    if (ip) {
+      const eventsFromIp = await base44.entities.PublicAccessEvent.filter({
+        ip,
+        action: 'upload',
+      });
+      const recentFromIp = eventsFromIp.filter((e: any) => (e.ts || '') >= oneHourAgo);
+      if (recentFromIp.length >= MAX_UPLOADS_PER_IP_PER_HOUR) {
+        await base44.entities.PublicAccessEvent.create({
+          token_id: t.id,
+          resource_type: t.resource_type,
+          resource_id: t.resource_id,
+          action: 'denied_rate_limit',
+          ts: new Date().toISOString(),
+          ip, user_agent: ua,
+          success: false,
+          metadata: { recent_uploads: recentFromIp.length, item_name, scope: 'ip' },
+        }).catch(() => {});
+        return Response.json(
+          { error: 'Too many uploads from your network. Please wait and try again.' },
+          { status: 429 },
+        );
+      }
     }
 
     // Validate item_name against the engagement's data_requests.

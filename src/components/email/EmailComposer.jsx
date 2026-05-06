@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { appParams } from '@/lib/app-params';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,13 +15,40 @@ import {
   countUnfilledManualVars, SERIES_LABELS,
 } from '@/components/email/emailTemplates';
 
+// Map a linked CRM record type to the public-token resource_type the user
+// would expect to hand to the recipient. Pipeline records carry SOW links;
+// engagements carry portal links. Other types have no public link surface yet.
+const RECORD_TYPE_TO_PUBLIC_RESOURCE = {
+  prospect: null,
+  pipeline: 'sow',
+  engagement: 'portal',
+  retainer: null,
+};
+
+function buildPublicUrl(resourceType, token) {
+  const base = (appParams.appBaseUrl || window.location.origin).replace(/\/$/, '');
+  return `${base}/p/${resourceType}/${token}`;
+}
+
+function pickActiveToken(tokens, resourceType) {
+  const now = new Date();
+  return (tokens || [])
+    .filter((t) => (
+      t.resource_type === resourceType &&
+      !t.revoked &&
+      !t.consumed_at &&
+      (!t.expires_at || new Date(t.expires_at) > now)
+    ))
+    .sort((a, b) => new Date(b.issued_at || 0) - new Date(a.issued_at || 0))[0];
+}
+
 // Group templates by series for the selector
 const GROUPED = Object.entries(SERIES_LABELS).map(([series, label]) => ({
   series, label,
   templates: EMAIL_TEMPLATES.filter(t => t.series === series),
 }));
 
-export default function EmailComposer({ prefill, prospects, engagements, retainers, onSent, onCancel, currentUser }) {
+export default function EmailComposer({ prefill, prospects, engagements, retainers, pipelineRecords, onSent, onCancel, currentUser }) {
   const [form, setForm] = useState({
     to_address: prefill?.to_address || '',
     to_name: prefill?.to_name || '',
@@ -40,9 +69,34 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
     const { linked_record_type, linked_record_id } = form;
     if (!linked_record_id) return null;
     if (linked_record_type === 'prospect') return prospects?.find(x => x.id === linked_record_id);
+    if (linked_record_type === 'pipeline') return pipelineRecords?.find(x => x.id === linked_record_id);
     if (linked_record_type === 'engagement') return engagements?.find(x => x.id === linked_record_id);
     if (linked_record_type === 'retainer') return retainers?.find(x => x.id === linked_record_id);
     return null;
+  };
+
+  // Fetch active public-access tokens for the linked record so {{AUTO:SOW_REVIEW_LINK}}
+  // and {{AUTO:PORTAL_LINK}} can be substituted at template-application time.
+  const publicResourceType = RECORD_TYPE_TO_PUBLIC_RESOURCE[form.linked_record_type] || null;
+  const { data: linkedTokens = [] } = useQuery({
+    queryKey: ['public-tokens-for-record', form.linked_record_type, form.linked_record_id],
+    queryFn: () => base44.entities.PublicAccessToken.filter({
+      resource_type: publicResourceType,
+      resource_id: form.linked_record_id,
+    }),
+    enabled: !!form.linked_record_id && !!publicResourceType,
+  });
+
+  const buildPublicLinks = () => {
+    const links = { sowReviewLink: '', portalLink: '' };
+    if (form.linked_record_type === 'pipeline') {
+      const t = pickActiveToken(linkedTokens, 'sow');
+      if (t?.token) links.sowReviewLink = buildPublicUrl('sow', t.token);
+    } else if (form.linked_record_type === 'engagement') {
+      const t = pickActiveToken(linkedTokens, 'portal');
+      if (t?.token) links.portalLink = buildPublicUrl('portal', t.token);
+    }
+    return links;
   };
 
   const handleTemplateSelect = (templateId) => {
@@ -53,7 +107,7 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
     const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
     if (!template) return;
     const record = getLinkedRecord();
-    const autoVars = buildAutoVars(record, form.linked_record_type, currentUser);
+    const autoVars = buildAutoVars(record, form.linked_record_type, currentUser, buildPublicLinks());
     set('template_used', templateId);
     set('subject', applyTemplate(template.subject, autoVars));
     set('body', applyTemplate(template.body, autoVars));
@@ -63,7 +117,12 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
     set('linked_record_type', type);
     set('linked_record_id', id);
     if (!id) { set('linked_record_name', ''); return; }
-    const lists = { prospect: prospects, engagement: engagements, retainer: retainers };
+    const lists = {
+      prospect: prospects,
+      pipeline: pipelineRecords,
+      engagement: engagements,
+      retainer: retainers,
+    };
     const rec = (lists[type] || []).find(x => x.id === id);
     if (rec) {
       set('linked_record_name', rec.facility_name);
@@ -95,7 +154,12 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
     }
   };
 
-  const recordOptions = { prospect: prospects, engagement: engagements, retainer: retainers };
+  const recordOptions = {
+    prospect: prospects,
+    pipeline: pipelineRecords,
+    engagement: engagements,
+    retainer: retainers,
+  };
 
   // Render body with ⚠️ vars highlighted
   const renderHighlightedBody = (text) => {
@@ -177,6 +241,7 @@ export default function EmailComposer({ prefill, prospects, engagements, retaine
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
                 <SelectItem value="prospect">Prospect</SelectItem>
+                <SelectItem value="pipeline">Pipeline (SOW)</SelectItem>
                 <SelectItem value="engagement">Engagement</SelectItem>
                 <SelectItem value="retainer">Retainer</SelectItem>
               </SelectContent>

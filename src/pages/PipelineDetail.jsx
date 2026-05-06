@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import DocumentsPanel from '@/components/documents/DocumentsPanel';
 import PublicLinkPanel from '@/components/sharing/PublicLinkPanel';
+import PublicLinkActivity from '@/components/sharing/PublicLinkActivity';
 
 const STAGES = [
   'Discovery Call Scheduled', 'Discovery Complete', 'Proposal Call Scheduled',
@@ -25,7 +26,7 @@ export default function PipelineDetail() {
   const id = window.location.pathname.split('/').pop();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { isOperator, isVA } = useCurrentUser();
+  const { isOperator, isVA, isFounder } = useCurrentUser();
   const [showBant, setShowBant] = useState(false);
   const [callNote, setCallNote] = useState('');
 
@@ -236,6 +237,13 @@ export default function PipelineDetail() {
               defaultRecipientName={record.admin_name || ''}
               disabled={!record.sow_generated_url}
               disabledReason="Upload the SOW PDF (set sow_generated_url) before issuing a review link."
+            />
+          )}
+
+          {isFounder && (
+            <PublicLinkActivity
+              resourceType="sow"
+              resourceId={record.id}
             />
           )}
 

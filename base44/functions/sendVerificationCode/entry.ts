@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.27';
 
 const CODE_TTL_MIN = 15;
 const MAX_CODES_PER_HOUR = 3;
+const MAX_CODES_PER_IP_PER_HOUR = 10;
 
 function generateCode(): string {
   const buf = new Uint8Array(4);
@@ -60,7 +61,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Link no longer valid' }, { status: 410 });
     }
 
-    // Rate limit: max 3 codes per token per hour.
+    // Rate limit: max 3 codes per token per hour, max 10 per IP per hour.
     const oneHourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
     const allCodes = await base44.entities.EmailVerificationCode.filter({ token_id: t.id });
     const recent = allCodes.filter((c: any) => (c.issued_at || '') >= oneHourAgo);
@@ -73,12 +74,34 @@ Deno.serve(async (req) => {
         ts: new Date().toISOString(),
         ip, user_agent: ua,
         success: false,
-        metadata: { recent_codes: recent.length },
+        metadata: { recent_codes: recent.length, scope: 'token' },
       }).catch(() => {});
       return Response.json(
         { error: 'Too many code requests. Please wait an hour and try again.' },
         { status: 429 },
       );
+    }
+
+    // Best-effort per-IP cap. Skipped when IP is empty (unknown infra path).
+    if (ip) {
+      const codesFromIp = await base44.entities.EmailVerificationCode.filter({ issuer_ip: ip });
+      const recentFromIp = codesFromIp.filter((c: any) => (c.issued_at || '') >= oneHourAgo);
+      if (recentFromIp.length >= MAX_CODES_PER_IP_PER_HOUR) {
+        await base44.entities.PublicAccessEvent.create({
+          token_id: t.id,
+          resource_type: t.resource_type,
+          resource_id: t.resource_id,
+          action: 'denied_rate_limit',
+          ts: new Date().toISOString(),
+          ip, user_agent: ua,
+          success: false,
+          metadata: { recent_codes: recentFromIp.length, scope: 'ip' },
+        }).catch(() => {});
+        return Response.json(
+          { error: 'Too many code requests from your network. Please wait and try again.' },
+          { status: 429 },
+        );
+      }
     }
 
     const code = generateCode();
