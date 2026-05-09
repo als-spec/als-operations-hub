@@ -13,7 +13,8 @@ const STATUS_COLORS = {
   Void: 'bg-muted text-muted-foreground',
 };
 
-export default function InvoiceList({ invoices, onEdit, onDelete, onStatusChange }) {
+export default function InvoiceList({ invoices, prospects = [], onEdit, onDelete, onStatusChange }) {
+  const prospectMap = Object.fromEntries(prospects.map(p => [p.id, p.facility_name]));
   if (!invoices.length) return (
     <div className="text-center py-12 text-muted-foreground">No invoices yet. Create your first invoice above.</div>
   );
@@ -37,7 +38,7 @@ export default function InvoiceList({ invoices, onEdit, onDelete, onStatusChange
           {invoices.map(inv => (
             <TableRow key={inv.id} className="hover:bg-muted/20">
               <TableCell className="font-mono text-sm">{inv.invoice_number || '—'}</TableCell>
-              <TableCell className="font-medium">{inv.facility_name}</TableCell>
+              <TableCell className="font-medium">{inv.prospect_id ? prospectMap[inv.prospect_id] : inv.facility_name}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{inv.invoice_type}</TableCell>
               <TableCell className="font-semibold">${(inv.amount || 0).toLocaleString()}</TableCell>
               <TableCell className="text-sm">{inv.issue_date ? format(parseISO(inv.issue_date), 'MMM d, yyyy') : '—'}</TableCell>

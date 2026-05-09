@@ -35,6 +35,11 @@ export default function Financials() {
     queryFn: () => base44.entities.PipelineRecord.list(),
   });
 
+  const { data: prospects = [] } = useQuery({
+    queryKey: ['prospects'],
+    queryFn: () => base44.entities.Prospect.list('facility_name', 200),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Invoice.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['invoices'] }); setShowForm(false); setEditingInvoice(null); },
@@ -148,7 +153,7 @@ export default function Financials() {
           <TabsTrigger value="forecast">Revenue Forecast</TabsTrigger>
         </TabsList>
         <TabsContent value="invoices" className="mt-4">
-          <InvoiceList invoices={invoices} onEdit={handleEdit} onDelete={(id) => deleteMutation.mutate(id)} onStatusChange={(id, status) => updateMutation.mutate({ id, data: { status, ...(status === 'Paid' ? { paid_date: new Date().toISOString().split('T')[0] } : {}) } })} />
+          <InvoiceList invoices={invoices} prospects={prospects} onEdit={handleEdit} onDelete={(id) => deleteMutation.mutate(id)} onStatusChange={(id, status) => updateMutation.mutate({ id, data: { status, ...(status === 'Paid' ? { paid_date: new Date().toISOString().split('T')[0] } : {}) } })} />
         </TabsContent>
         <TabsContent value="ar" className="mt-4">
           <ARAgingTable invoices={invoices} />

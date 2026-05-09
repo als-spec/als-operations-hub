@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 const EMPTY = {
   invoice_number: '',
-  facility_name: '',
+  prospect_id: '',
   description: '',
   amount: '',
   invoice_type: 'Monthly Retainer',
@@ -23,11 +25,21 @@ const EMPTY = {
 export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
   const [form, setForm] = useState(invoice ? { ...invoice } : EMPTY);
 
+  const { data: prospects = [] } = useQuery({
+    queryKey: ['prospects-select'],
+    queryFn: () => base44.entities.Prospect.list('facility_name', 200),
+  });
+
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...form, amount: parseFloat(form.amount) || 0 });
+    const selectedProspect = prospects.find(p => p.id === form.prospect_id);
+    onSubmit({
+      ...form,
+      amount: parseFloat(form.amount) || 0,
+      facility_name: selectedProspect?.facility_name || form.facility_name || '',
+    });
   };
 
   return (
@@ -43,8 +55,15 @@ export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
               <Input placeholder="INV-2024-001" value={form.invoice_number} onChange={e => set('invoice_number', e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label>Facility Name *</Label>
-              <Input required placeholder="Client facility" value={form.facility_name} onChange={e => set('facility_name', e.target.value)} />
+              <Label>Facility *</Label>
+              <Select value={form.prospect_id || ''} onValueChange={v => set('prospect_id', v)} required>
+                <SelectTrigger><SelectValue placeholder="Select facility…" /></SelectTrigger>
+                <SelectContent>
+                  {prospects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.facility_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label>Amount *</Label>
