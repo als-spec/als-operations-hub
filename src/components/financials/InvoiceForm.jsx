@@ -30,7 +30,14 @@ export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
     queryFn: () => base44.entities.Prospect.list('facility_name', 200),
   });
 
-  const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+  const set = (field, value) => setForm(f => {
+    const updated = { ...f, [field]: value };
+    // Due date must not be before issue date
+    if (field === 'issue_date' && updated.due_date && updated.due_date < value) {
+      updated.due_date = value;
+    }
+    return updated;
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,7 +89,7 @@ export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
             </div>
             <div className="space-y-1">
               <Label>Status</Label>
-              <Select value={form.status} onValueChange={v => set('status', v)}>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v, paid_date: v === 'Paid' ? (f.paid_date || new Date().toISOString().split('T')[0]) : '' }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {['Draft','Sent','Paid','Overdue','Void'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -106,11 +113,12 @@ export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
             </div>
             <div className="space-y-1">
               <Label>Due Date</Label>
-              <Input type="date" value={form.due_date} onChange={e => set('due_date', e.target.value)} />
+              <Input type="date" value={form.due_date} min={form.issue_date} onChange={e => set('due_date', e.target.value)} />
             </div>
             <div className="space-y-1">
               <Label>Paid Date</Label>
-              <Input type="date" value={form.paid_date} onChange={e => set('paid_date', e.target.value)} />
+              <Input type="date" value={form.paid_date || ''} disabled={form.status !== 'Paid'} onChange={e => set('paid_date', e.target.value)} />
+              {form.status !== 'Paid' && <p className="text-[11px] text-muted-foreground">Set when status is Paid</p>}
             </div>
           </div>
           <div className="space-y-1">
