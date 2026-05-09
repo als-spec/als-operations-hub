@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 const EMPTY = {
   invoice_number: '',
   prospect_id: '',
+  linked_record_type: '',
+  linked_record_id: '',
   description: '',
   amount: '',
   invoice_type: 'Monthly Retainer',
@@ -30,11 +32,35 @@ export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
     queryFn: () => base44.entities.Prospect.list('facility_name', 200),
   });
 
+  const { data: engagements = [] } = useQuery({
+    queryKey: ['engagements-select'],
+    queryFn: () => base44.entities.Engagement.list('-created_date', 200),
+  });
+
+  const { data: retainers = [] } = useQuery({
+    queryKey: ['retainers-select'],
+    queryFn: () => base44.entities.Retainer.list('-created_date', 200),
+  });
+
+  const linkedOptions = form.linked_record_type === 'engagement'
+    ? engagements.filter(e => !form.prospect_id || e.prospect_id === form.prospect_id)
+    : form.linked_record_type === 'retainer'
+    ? retainers.filter(r => !form.prospect_id || r.prospect_id === form.prospect_id)
+    : [];
+
   const set = (field, value) => setForm(f => {
     const updated = { ...f, [field]: value };
     // Due date must not be before issue date
     if (field === 'issue_date' && updated.due_date && updated.due_date < value) {
       updated.due_date = value;
+    }
+    // Reset linked record when type changes
+    if (field === 'linked_record_type') {
+      updated.linked_record_id = '';
+    }
+    // Reset linked record when prospect changes
+    if (field === 'prospect_id') {
+      updated.linked_record_id = '';
     }
     return updated;
   });
@@ -76,6 +102,39 @@ export default function InvoiceForm({ invoice, onSubmit, onCancel }) {
               <Label>Amount *</Label>
               <Input required type="number" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} />
             </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <Label>Link to Record</Label>
+              <Select value={form.linked_record_type || ''} onValueChange={v => set('linked_record_type', v)}>
+                <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>None</SelectItem>
+                  <SelectItem value="engagement">Engagement</SelectItem>
+                  <SelectItem value="retainer">Retainer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {form.linked_record_type && (
+              <div className="space-y-1 md:col-span-2">
+                <Label>{form.linked_record_type === 'engagement' ? 'Engagement' : 'Retainer'}</Label>
+                <Select value={form.linked_record_id || ''} onValueChange={v => set('linked_record_id', v)}>
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    {linkedOptions.length === 0
+                      ? <SelectItem value={null} disabled>No records found</SelectItem>
+                      : linkedOptions.map(r => {
+                          const prospect = prospects.find(p => p.id === r.prospect_id);
+                          const label = form.linked_record_type === 'engagement'
+                            ? `${prospect?.facility_name || 'Unknown'} — $${(r.fee || 0).toLocaleString()} (${r.status})`
+                            : `${prospect?.facility_name || 'Unknown'} — $${(r.mrr || 0).toLocaleString()}/mo (${r.status})`;
+                          return <SelectItem key={r.id} value={r.id}>{label}</SelectItem>;
+                        })
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1">
