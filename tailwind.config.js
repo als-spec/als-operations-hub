@@ -50,8 +50,8 @@ module.exports = {
         cobalt: 'hsl(var(--cobalt))',
         teal: {
           DEFAULT: 'hsl(var(--teal))',
-          '10': 'rgba(29, 233, 182, 0.1)',
-          '15': 'rgba(29, 233, 182, 0.15)',
+          '10': 'rgba(42, 157, 143, 0.1)',
+          '15': 'rgba(42, 157, 143, 0.15)',
         },
         warning: 'hsl(var(--warning))',
         success: 'hsl(var(--success))',

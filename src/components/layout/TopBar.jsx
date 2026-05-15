@@ -17,9 +17,9 @@ const roleLabels = {
 };
 
 const roleBadgeColors = {
-  founder: 'bg-cobalt text-white',
-  admin: 'bg-cobalt text-white',
-  operator: 'bg-teal text-navy',
+  founder: 'bg-primary text-white',
+  admin: 'bg-primary text-white',
+  operator: 'bg-accent text-white',
   va: 'bg-warning text-white',
   analyst: 'bg-secondary text-secondary-foreground',
 };

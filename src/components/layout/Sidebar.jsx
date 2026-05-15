@@ -37,10 +37,10 @@ export default function Sidebar({ collapsed, setCollapsed, userRole }) {
         {!collapsed && (
           <div className="flex flex-col">
             <span className="text-sm font-bold tracking-wide text-white">Operations Hub</span>
-            <span className="text-[10px] text-sidebar-muted-foreground tracking-widest uppercase">ALS Professional</span>
+            <span className="text-[10px] text-sidebar-muted-foreground tracking-widest uppercase">Surgical Practice Solutions</span>
           </div>
         )}
-        {collapsed && <span className="text-lg font-bold text-sidebar-primary mx-auto">A</span>}
+        {collapsed && <span className="text-lg font-bold text-sidebar-primary mx-auto">S</span>}
       </div>
 
       {/* Navigation */}

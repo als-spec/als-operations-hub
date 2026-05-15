@@ -1,5 +1,5 @@
 /**
- * Complete ALS Professional Network Email Template Library
+ * Complete Surgical Practice Solutions Email Template Library
  * 31 templates across 6 series
  *
  * Variable types:
@@ -29,7 +29,7 @@ export const EMAIL_TEMPLATES = [
     subject: 'Supply Chain Optimization for {{AUTO:FACILITY_NAME}}',
     body: `Hi {{AUTO:ADMIN_NAME}},
 
-I hope this message finds you well. My name is {{AUTO:FOUNDER_NAME}} with ALS Professional Network, a healthcare supply chain consulting firm specializing in physician-owned ASCs.
+I hope this message finds you well. My name is {{AUTO:FOUNDER_NAME}} with Surgical Practice Solutions, a healthcare supply chain consulting firm specializing in physician-owned ASCs.
 
 We've helped facilities like {{AUTO:FACILITY_NAME}} identify significant cost savings through PPI variance analysis, GPO tier optimization, and off-contract spend recovery — typically achieving 3–5× ROI on our diagnostic fee.
 
@@ -39,7 +39,7 @@ I'd love to schedule a brief 30-minute discovery call to explore whether there m
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network
+Surgical Practice Solutions
 {{AUTO:PHONE}} · {{AUTO:EMAIL}}`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'CALENDAR_LINK', 'PHONE', 'EMAIL'],
     manual_vars: [],
@@ -53,12 +53,12 @@ ALS Professional Network
     subject: 'Connecting — Supply Chain for Physician-Owned ASCs',
     body: `Hi {{AUTO:ADMIN_NAME}},
 
-I came across {{AUTO:FACILITY_NAME}} and wanted to connect. I work with ALS Professional Network, focused exclusively on supply chain optimization for physician-owned orthopedic ASCs.
+I came across {{AUTO:FACILITY_NAME}} and wanted to connect. I work with Surgical Practice Solutions, focused exclusively on supply chain optimization for physician-owned orthopedic ASCs.
 
 We surface savings that consistently offset our fee by 3× or more. Happy to share a brief case example if you're open to it.
 
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME'],
     manual_vars: [],
   },
@@ -152,7 +152,7 @@ We're looking forward to getting started.
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network
+Surgical Practice Solutions
 {{AUTO:EMAIL}} · {{AUTO:PHONE}}`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'KICKOFF_DATE', 'CALL_LINK', 'DATA_DUE_DATE', 'OPERATOR_NAME', 'EMAIL', 'PHONE', 'PORTAL_LINK'],
     manual_vars: [],
@@ -199,7 +199,7 @@ If the timing is better now, I'd welcome the chance to reconnect.
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'CALENDAR_LINK'],
     manual_vars: ['RECENT_CLIENT_TYPE'],
   },
@@ -222,7 +222,7 @@ I wish you and your team continued success.
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME'],
     manual_vars: [],
   },
@@ -294,13 +294,13 @@ Please find your deposit invoice attached:
 Invoice #: {{AUTO:INVOICE_NUMBER}}
 Amount due: {{AUTO:INVOICE_AMOUNT}}
 Due date: {{AUTO:DUE_DATE}}
-Payment: ACH or check payable to ALS Professional Network
+Payment: ACH or check payable to Surgical Practice Solutions
 
 Once your deposit is received, we'll confirm your kickoff date and begin scheduling.
 
 Thank you,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'INVOICE_NUMBER', 'INVOICE_AMOUNT', 'DUE_DATE'],
     manual_vars: [],
   },
@@ -325,7 +325,7 @@ We're looking forward to getting started. Don't hesitate to reach out with any q
 
 Best,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'KICKOFF_DATE', 'OPERATOR_NAME'],
     manual_vars: [],
   },
@@ -516,7 +516,7 @@ Invoice #: {{AUTO:INVOICE_NUMBER}}
 Amount due: {{AUTO:INVOICE_AMOUNT}}
 Due date: {{AUTO:DUE_DATE}}
 
-Payment by ACH or check payable to ALS Professional Network.
+Payment by ACH or check payable to Surgical Practice Solutions.
 
 Our total documented opportunity came to {{AUTO:WEIGHTED_TOTAL}}, which {{MANUAL:THRESHOLD_STATUS}} our {{AUTO:GUARANTEE_THRESHOLD}} guarantee threshold.
 
@@ -524,7 +524,7 @@ Thank you for the opportunity to serve {{AUTO:FACILITY_NAME}}.
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'INVOICE_NUMBER', 'INVOICE_AMOUNT', 'DUE_DATE', 'WEIGHTED_TOTAL', 'GUARANTEE_THRESHOLD'],
     manual_vars: ['THRESHOLD_STATUS'],
   },
@@ -578,7 +578,7 @@ We remain available if you have questions about implementation, and we hope to h
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'GUARANTEE_THRESHOLD'],
     manual_vars: ['REMEDY_DESCRIPTION'],
   },
@@ -621,7 +621,7 @@ Best,
     name: 'Retainer Welcome',
     trigger: 'Retainer signed + deposit received',
     default_sender: 'founder',
-    subject: 'Welcome to ALS Professional Network — {{AUTO:FACILITY_NAME}} Retainer',
+    subject: 'Welcome to Surgical Practice Solutions — {{AUTO:FACILITY_NAME}} Retainer',
     body: `Hi {{AUTO:ADMIN_NAME}},
 
 Welcome — we're thrilled to have {{AUTO:FACILITY_NAME}} as an ongoing partner.
@@ -645,7 +645,7 @@ We look forward to a long and productive partnership.
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'KICKOFF_DATE', 'MONTHLY_FEE', 'OPERATOR_NAME', 'OPERATOR_EMAIL'],
     manual_vars: [],
   },
@@ -667,7 +667,7 @@ Period: {{MANUAL:MONTH_YEAR}}
 Amount: {{AUTO:MONTHLY_FEE}}
 Due date: {{AUTO:DUE_DATE}}
 
-Payment by ACH or check payable to ALS Professional Network.
+Payment by ACH or check payable to Surgical Practice Solutions.
 
 Thank you,
 {{AUTO:OPERATOR_NAME}}
@@ -813,7 +813,7 @@ Thank you for your continued partnership. We look forward to another strong quar
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME'],
     manual_vars: ['CUMULATIVE_SAVINGS', 'SAVINGS_VS_TARGET', 'ACTION_1', 'ACTION_2', 'RENEWAL_NOTES', 'NEXT_QBR_DATE'],
   },
@@ -826,7 +826,7 @@ ALS Professional Network`,
     subject: 'Retainer Renewal — {{AUTO:FACILITY_NAME}} ({{AUTO:RENEWAL_DATE}})',
     body: `Hi {{AUTO:ADMIN_NAME}},
 
-Your current retainer with ALS Professional Network is set to renew on {{AUTO:RENEWAL_DATE}} — approximately 60 days from now.
+Your current retainer with Surgical Practice Solutions is set to renew on {{AUTO:RENEWAL_DATE}} — approximately 60 days from now.
 
 Current terms: {{AUTO:MONTHLY_FEE}}/month
 
@@ -856,11 +856,11 @@ If payment has already been sent, please disregard this notice and let us know s
 
 If there's a question or issue with the invoice, please reply to this email and we'll resolve it promptly.
 
-Payment can be made by ACH or check payable to ALS Professional Network.
+Payment can be made by ACH or check payable to Surgical Practice Solutions.
 
 Thank you,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network
+Surgical Practice Solutions
 {{AUTO:PHONE}}`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'INVOICE_NUMBER', 'INVOICE_AMOUNT', 'DUE_DATE', 'PHONE'],
     manual_vars: [],
@@ -886,7 +886,7 @@ This link is valid for 14 days and is single-use — once you sign, it cannot be
 
 Best regards,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network
+Surgical Practice Solutions
 {{AUTO:PHONE}} · {{AUTO:EMAIL}}`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'SOW_REVIEW_LINK', 'PHONE', 'EMAIL'],
     manual_vars: [],
@@ -910,7 +910,7 @@ Please let me know if you have any trouble accessing it.
 
 Best,
 {{AUTO:OPERATOR_NAME}}
-ALS Professional Network
+Surgical Practice Solutions
 {{AUTO:OPERATOR_EMAIL}}`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'OPERATOR_NAME', 'OPERATOR_EMAIL', 'PORTAL_LINK'],
     manual_vars: [],
@@ -934,7 +934,7 @@ Looking forward to walking through the results with you.
 
 Best,
 {{AUTO:FOUNDER_NAME}}
-ALS Professional Network`,
+Surgical Practice Solutions`,
     auto_vars: ['ADMIN_NAME', 'FACILITY_NAME', 'FOUNDER_NAME', 'PORTAL_LINK'],
     manual_vars: [],
   },
@@ -952,9 +952,9 @@ ALS Professional Network`,
 export function buildAutoVars(record, recordType, user, publicLinks = {}) {
   if (!record) return {};
   const vars = {
-    PRACTICE_NAME: 'ALS Professional Network',
-    FOUNDER_NAME: 'ALS Founder', // override with real user data
-    OPERATOR_NAME: 'ALS Operator',
+    PRACTICE_NAME: 'Surgical Practice Solutions',
+    FOUNDER_NAME: 'SPS Founder', // override with real user data
+    OPERATOR_NAME: 'SPS Operator',
     EMAIL: user?.email || '',
     PHONE: '',
     CALENDAR_LINK: '[CALENDAR LINK]',

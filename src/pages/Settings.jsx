@@ -13,9 +13,9 @@ import { useToast } from '@/components/ui/use-toast';
 
 const ROLE_LABELS = { founder: 'Founder', operator: 'Operator', va: 'VA', analyst: 'Analyst', admin: 'Admin' };
 const ROLE_COLORS = {
-  founder: 'bg-cobalt text-white',
-  admin: 'bg-cobalt text-white',
-  operator: 'bg-teal text-navy',
+  founder: 'bg-primary text-white',
+  admin: 'bg-primary text-white',
+  operator: 'bg-accent text-white',
   va: 'bg-warning text-white',
   analyst: 'bg-secondary text-secondary-foreground',
 };
@@ -160,11 +160,11 @@ export default function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Practice Name</Label>
-              <Input defaultValue="ALS Professional Network" disabled />
+              <Input defaultValue="Surgical Practice Solutions" disabled />
             </div>
             <div className="space-y-1">
               <Label>App Name</Label>
-              <Input defaultValue="Operations Hub" disabled />
+              <Input defaultValue="SPS Operations Hub" disabled />
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Contact your admin to update practice-level settings.</p>

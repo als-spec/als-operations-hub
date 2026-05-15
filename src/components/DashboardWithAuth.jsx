@@ -60,19 +60,24 @@ export default function DashboardWithAuth() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: '#0A2540' }}
+        style={{ backgroundColor: '#000000' }}
       >
-        <Card className="w-full max-w-md mx-4">
-          <CardHeader className="text-center space-y-2 pb-8">
-            <h1 className="text-3xl font-bold" style={{ color: '#0A2540' }}>
+        <Card className="w-full max-w-md mx-4 border-0 shadow-2xl">
+          <CardHeader className="text-center space-y-2 pb-8 pt-8">
+            <div className="mb-2">
+              <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#F26722' }}>
+                Surgical Practice Solutions
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>
               Operations Hub
             </h1>
-            <p className="text-sm" style={{ color: '#475569' }}>
-              ALS Professional Network · Internal Operations
+            <p className="text-sm" style={{ color: '#666666' }}>
+              Internal Operations Platform
             </p>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pb-8">
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-2">
@@ -114,13 +119,12 @@ export default function DashboardWithAuth() {
                 type="submit"
                 className="w-full"
                 disabled={loggingIn}
-                style={{ backgroundColor: '#1DE9B6', color: '#0A2540' }}
               >
                 {loggingIn ? 'Logging in…' : 'Log In'}
               </Button>
             </form>
 
-            <p className="text-xs text-center" style={{ color: '#6B7280' }}>
+            <p className="text-xs text-center" style={{ color: '#999999' }}>
               Contact your administrator to create an account
             </p>
           </CardContent>
