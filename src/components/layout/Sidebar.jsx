@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GitBranch, Briefcase, Calendar,
-  ChevronLeft, ChevronRight, DollarSign, Send, RefreshCw, MessageSquare, Mail, FolderOpen, Settings
+  ChevronLeft, ChevronRight, DollarSign, Send, RefreshCw, MessageSquare, Mail, FolderOpen, Settings, Crosshair
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +18,8 @@ const navItems = [
   { label: 'Client Email',   path: '/email',          icon: Mail,            roles: ['founder', 'operator', 'va', 'admin'] },
   { label: 'Financials',     path: '/financials',     icon: DollarSign,      roles: ['founder', 'admin'] },
   { label: 'Documents',      path: '/documents',      icon: FolderOpen,      roles: ['founder', 'operator', 'va', 'analyst', 'admin'] },
-  { label: 'Settings',       path: '/settings',       icon: Settings,        roles: ['founder', 'admin'] },
+  { label: 'Mission Control', path: '/mission-control', icon: Crosshair,       roles: ['founder', 'operator', 'admin'] },
+  { label: 'Settings',       path: '/settings',        icon: Settings,        roles: ['founder', 'admin'] },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed, userRole }) {

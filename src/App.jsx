@@ -34,6 +34,7 @@ import Communications from '@/pages/Communications';
 import ClientEmail from '@/pages/ClientEmail';
 import Documents from '@/pages/Documents';
 import Settings from '@/pages/Settings';
+import MissionControl from '@/pages/MissionControl';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
         <Route path="/email" element={<ClientEmail />} />
         <Route path="/documents" element={<Documents />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/mission-control" element={<MissionControl />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
